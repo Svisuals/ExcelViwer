@@ -24,33 +24,47 @@
         #grafico {
             margin: 20px;
         }
+
+        #info {
+            margin: 20px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
     <h1>Seguimiento de Actividades de Obra</h1>
-    <div id="actividades">
-        <div class="actividad" data-actividad="1">
-            <h2>Actividad 1</h2>
-            <label><input type="checkbox" name="actividad1" value="20"> 20%</label>
-            <label><input type="checkbox" name="actividad1" value="40"> 40%</label>
-            <label><input type="checkbox" name="actividad1" value="60"> 60%</label>
-            <label><input type="checkbox" name="actividad1" value="80"> 80%</label>
-            <label><input type="checkbox" name="actividad1" value="100"> 100%</label>
+    <button id="downloadPdf">Descargar PDF</button>
+    <div id="contenido">
+        <div id="info">
+            <p id="version"></p>
+            <p id="fecha"></p>
         </div>
-        <div class="actividad" data-actividad="2">
-            <h2>Actividad 2</h2>
-            <label><input type="checkbox" name="actividad2" value="20"> 20%</label>
-            <label><input type="checkbox" name="actividad2" value="40"> 40%</label>
-            <label><input type="checkbox" name="actividad2" value="60"> 60%</label>
-            <label><input type="checkbox" name="actividad2" value="80"> 80%</label>
-            <label><input type="checkbox" name="actividad2" value="100"> 100%</label>
+        <div id="actividades">
+            <div class="actividad" data-actividad="1">
+                <h2>Actividad 1</h2>
+                <label><input type="checkbox" name="actividad1" value="20"> 20%</label>
+                <label><input type="checkbox" name="actividad1" value="40"> 40%</label>
+                <label><input type="checkbox" name="actividad1" value="60"> 60%</label>
+                <label><input type="checkbox" name="actividad1" value="80"> 80%</label>
+                <label><input type="checkbox" name="actividad1" value="100"> 100%</label>
+            </div>
+            <div class="actividad" data-actividad="2">
+                <h2>Actividad 2</h2>
+                <label><input type="checkbox" name="actividad2" value="20"> 20%</label>
+                <label><input type="checkbox" name="actividad2" value="40"> 40%</label>
+                <label><input type="checkbox" name="actividad2" value="60"> 60%</label>
+                <label><input type="checkbox" name="actividad2" value="80"> 80%</label>
+                <label><input type="checkbox" name="actividad2" value="100"> 100%</label>
+            </div>
+            <!-- Añadir más actividades según sea necesario -->
         </div>
-        <!-- Añadir más actividades según sea necesario -->
+        <div id="grafico"></div>
     </div>
-    <div id="grafico"></div>
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            let version = localStorage.getItem('pdfVersion') || 1;
             const checkboxes = document.querySelectorAll('input[type="checkbox"]');
 
             // Cargar el estado guardado
@@ -66,6 +80,19 @@
                     saveState();
                     updateGrafico();
                 });
+            });
+
+            document.getElementById("downloadPdf").addEventListener("click", function() {
+                const now = new Date();
+                const fecha = now.toLocaleDateString();
+                const hora = now.toLocaleTimeString();
+                document.getElementById('version').innerText = `Versión: ${version}`;
+                document.getElementById('fecha').innerText = `Fecha y hora de descarga: ${fecha} ${hora}`;
+                version++;
+                localStorage.setItem('pdfVersion', version);
+
+                const element = document.getElementById("contenido");
+                html2pdf().from(element).save();
             });
 
             function saveState() {
