@@ -1,19 +1,19 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="pt">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seguimiento de Actividades de Obra</title>
+    <title>Acompanhamento de Atividades de Obra</title>
     <style>
         body {
             font-family: Arial, sans-serif;
         }
 
-        #actividades {
+        #atividades {
             margin: 20px;
         }
 
-        .actividad {
+        .atividade {
             margin-bottom: 20px;
         }
 
@@ -32,31 +32,31 @@
     </style>
 </head>
 <body>
-    <h1>Seguimiento de Actividades de Obra</h1>
-    <button id="downloadPdf">Descargar PDF</button>
-    <div id="contenido">
+    <h1>Acompanhamento de Atividades de Obra</h1>
+    <button id="downloadPdf">Baixar PDF</button>
+    <div id="conteudo">
         <div id="info">
-            <p id="version"></p>
-            <p id="fecha"></p>
+            <p id="versao"></p>
+            <p id="data"></p>
         </div>
-        <div id="actividades">
-            <div class="actividad" data-actividad="1">
-                <h2>Actividad 1</h2>
-                <label><input type="checkbox" name="actividad1" value="20"> 20%</label>
-                <label><input type="checkbox" name="actividad1" value="40"> 40%</label>
-                <label><input type="checkbox" name="actividad1" value="60"> 60%</label>
-                <label><input type="checkbox" name="actividad1" value="80"> 80%</label>
-                <label><input type="checkbox" name="actividad1" value="100"> 100%</label>
+        <div id="atividades">
+            <div class="atividade" data-atividade="1">
+                <h2>Atividade 1</h2>
+                <label><input type="checkbox" name="atividade1" value="20"> 20%</label>
+                <label><input type="checkbox" name="atividade1" value="40"> 40%</label>
+                <label><input type="checkbox" name="atividade1" value="60"> 60%</label>
+                <label><input type="checkbox" name="atividade1" value="80"> 80%</label>
+                <label><input type="checkbox" name="atividade1" value="100"> 100%</label>
             </div>
-            <div class="actividad" data-actividad="2">
-                <h2>Actividad 2</h2>
-                <label><input type="checkbox" name="actividad2" value="20"> 20%</label>
-                <label><input type="checkbox" name="actividad2" value="40"> 40%</label>
-                <label><input type="checkbox" name="actividad2" value="60"> 60%</label>
-                <label><input type="checkbox" name="actividad2" value="80"> 80%</label>
-                <label><input type="checkbox" name="actividad2" value="100"> 100%</label>
+            <div class="atividade" data-atividade="2">
+                <h2>Atividade 2</h2>
+                <label><input type="checkbox" name="atividade2" value="20"> 20%</label>
+                <label><input type="checkbox" name="atividade2" value="40"> 40%</label>
+                <label><input type="checkbox" name="atividade2" value="60"> 60%</label>
+                <label><input type="checkbox" name="atividade2" value="80"> 80%</label>
+                <label><input type="checkbox" name="atividade2" value="100"> 100%</label>
             </div>
-            <!-- Añadir más actividades según sea necesario -->
+            <!-- Adicione mais atividades conforme necessário -->
         </div>
         <div id="grafico"></div>
     </div>
@@ -64,10 +64,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            let version = localStorage.getItem('pdfVersion') || 1;
+            let versao = localStorage.getItem('pdfVersao') || 1;
             const checkboxes = document.querySelectorAll('input[type="checkbox"]');
 
-            // Cargar el estado guardado
+            // Carregar o estado salvo
             loadState();
 
             checkboxes.forEach(checkbox => {
@@ -84,32 +84,32 @@
 
             document.getElementById("downloadPdf").addEventListener("click", function() {
                 const now = new Date();
-                const fecha = now.toLocaleDateString();
+                const data = now.toLocaleDateString();
                 const hora = now.toLocaleTimeString();
-                document.getElementById('version').innerText = `Versión: ${version}`;
-                document.getElementById('fecha').innerText = `Fecha y hora de descarga: ${fecha} ${hora}`;
-                version++;
-                localStorage.setItem('pdfVersion', version);
+                document.getElementById('versao').innerText = `Versão: ${versao}`;
+                document.getElementById('data').innerText = `Data e hora de download: ${data} ${hora}`;
+                versao++;
+                localStorage.setItem('pdfVersao', versao);
 
-                const element = document.getElementById("contenido");
+                const element = document.getElementById("conteudo");
                 html2pdf().from(element).save();
             });
 
             function saveState() {
-                const state = Array.from(document.querySelectorAll('.actividad')).map(actividad => {
-                    const selected = actividad.querySelector('input[type="checkbox"]:checked');
+                const state = Array.from(document.querySelectorAll('.atividade')).map(atividade => {
+                    const selected = atividade.querySelector('input[type="checkbox"]:checked');
                     return selected ? +selected.value : 0;
                 });
-                localStorage.setItem('actividadesState', JSON.stringify(state));
+                localStorage.setItem('atividadesState', JSON.stringify(state));
             }
 
             function loadState() {
-                const state = JSON.parse(localStorage.getItem('actividadesState'));
+                const state = JSON.parse(localStorage.getItem('atividadesState'));
                 if (state) {
-                    document.querySelectorAll('.actividad').forEach((actividad, index) => {
+                    document.querySelectorAll('.atividade').forEach((atividade, index) => {
                         const value = state[index];
                         if (value) {
-                            const checkbox = actividad.querySelector(`input[value="${value}"]`);
+                            const checkbox = atividade.querySelector(`input[value="${value}"]`);
                             if (checkbox) checkbox.checked = true;
                         }
                     });
@@ -118,8 +118,8 @@
             }
 
             function updateGrafico() {
-                const data = Array.from(document.querySelectorAll('.actividad')).map(actividad => {
-                    const selected = actividad.querySelector('input[type="checkbox"]:checked');
+                const data = Array.from(document.querySelectorAll('.atividade')).map(atividade => {
+                    const selected = atividade.querySelector('input[type="checkbox"]:checked');
                     return selected ? +selected.value : 0;
                 });
 
