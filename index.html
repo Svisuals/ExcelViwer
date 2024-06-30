@@ -18,10 +18,15 @@
         }
 
         label {
-            margin-right: 10px;
+            display: block;
+            margin-bottom: 5px;
         }
 
-        #grafico {
+        .data-group {
+            margin-bottom: 10px;
+        }
+
+        #grafico, #curvaS {
             margin: 20px;
         }
 
@@ -47,6 +52,12 @@
                 <label><input type="checkbox" name="atividade1" value="60"> 60%</label>
                 <label><input type="checkbox" name="atividade1" value="80"> 80%</label>
                 <label><input type="checkbox" name="atividade1" value="100"> 100%</label>
+                <div class="data-group">
+                    <label>Baseline Início: <input type="date" name="baselineInicio1" value="2024-07-01"></label>
+                    <label>Baseline Término: <input type="date" name="baselineTermino1" value="2024-07-10"></label>
+                    <label>Atual Início: <input type="date" name="atualInicio1" value="2024-07-02"></label>
+                    <label>Atual Término: <input type="date" name="atualTermino1" value="2024-07-12"></label>
+                </div>
             </div>
             <div class="atividade" data-atividade="2">
                 <h2>Atividade 2</h2>
@@ -55,10 +66,17 @@
                 <label><input type="checkbox" name="atividade2" value="60"> 60%</label>
                 <label><input type="checkbox" name="atividade2" value="80"> 80%</label>
                 <label><input type="checkbox" name="atividade2" value="100"> 100%</label>
+                <div class="data-group">
+                    <label>Baseline Início: <input type="date" name="baselineInicio2" value="2024-07-05"></label>
+                    <label>Baseline Término: <input type="date" name="baselineTermino2" value="2024-07-15"></label>
+                    <label>Atual Início: <input type="date" name="atualInicio2" value="2024-07-06"></label>
+                    <label>Atual Término: <input type="date" name="atualTermino2" value="2024-07-16"></label>
+                </div>
             </div>
             <!-- Adicione mais atividades conforme necessário -->
         </div>
         <div id="grafico"></div>
+        <div id="curvaS"></div>
     </div>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
@@ -79,6 +97,7 @@
                     });
                     saveState();
                     updateGrafico();
+                    updateCurvaS();
                 });
             });
 
@@ -115,6 +134,7 @@
                     });
                 }
                 updateGrafico();
+                updateCurvaS();
             }
 
             function updateGrafico() {
@@ -145,6 +165,60 @@
                     .attr("y", (d, i) => i * barHeight + barHeight / 2)
                     .attr("dy", ".35em")
                     .text(d => d + "%");
+            }
+
+            function updateCurvaS() {
+                const baselineData = Array.from(document.querySelectorAll('.atividade')).map(atividade => {
+                    const inicio = new Date(atividade.querySelector(`input[name^="baselineInicio"]`).value);
+                    const termino = new Date(atividade.querySelector(`input[name^="baselineTermino"]`).value);
+                    return { inicio, termino };
+                });
+
+                const atualData = Array.from(document.querySelectorAll('.atividade')).map(atividade => {
+                    const inicio = new Date(atividade.querySelector(`input[name^="atualInicio"]`).value);
+                    const termino = new Date(atividade.querySelector(`input[name^="atualTermino"]`).value);
+                    return { inicio, termino };
+                });
+
+                const svg = d3.select("#curvaS").html("").append("svg")
+                    .attr("width", 500)
+                    .attr("height", 300);
+
+                const x = d3.scaleTime().range([0, 480]);
+                const y = d3.scaleLinear().range([280, 0]);
+
+                const line = d3.line()
+                    .x(d => x(d.inicio))
+                    .y((d, i) => y((i + 1) / baselineData.length * 100));
+
+                x.domain(d3.extent([...baselineData, ...atualData], d => d.inicio));
+                y.domain([0, 100]);
+
+                svg.append("path")
+                    .data([baselineData])
+                    .attr("class", "line")
+                    .attr("d", line)
+                    .attr("stroke", "blue")
+                    .attr("stroke-width", 2)
+                    .attr("fill", "none");
+
+                svg.append("path")
+                    .data([atualData])
+                    .attr("class", "line")
+                    .attr("d", line)
+                    .attr("stroke", "red")
+                    .attr("stroke-width", 2)
+                    .attr("fill", "none");
+
+                svg.selectAll("dot")
+                    .data([...baselineData, ...atualData])
+                    .enter().append("circle")
+                    .attr("r", 5)
+                    .attr("cx", d => x(d.inicio))
+                    .attr("cy", (d, i) => y((i + 1) / baselineData.length * 100))
+                    .attr("fill", d => d === baselineData[0] ? "blue" : "red")
+                    .append("title")
+                    .text(d => `Início: ${d.inicio.toLocaleDateString()}, Término: ${d.termino.toLocaleDateString()}`);
             }
         });
     </script>
