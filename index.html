@@ -20,26 +20,11 @@
             width: 90%;
             overflow-x: auto;
         }
-
-        #downloadBtn {
-            display: block;
-            margin: 20px auto;
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-
-        #downloadBtn:hover {
-            background-color: #45a049;
-        }
     </style>
 </head>
 <body>
     <h1>Excel Viewer and Editor</h1>
     <div id="tableContainer"></div>
-    <button id="downloadBtn">Download Excel</button>
 
     <script src="https://cdn.sheetjs.com/xlsx-0.16.9/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
@@ -64,13 +49,6 @@
                     });
                 })
                 .catch(error => console.error('Error fetching or reading Excel file:', error));
-        });
-
-        document.getElementById('downloadBtn').addEventListener('click', function() {
-            const exportPlugin = hot.getPlugin('exportFile');
-            exportPlugin.downloadFile('xlsx', {
-                filename: 'LP 30-16 Venezuela 3269 - PARA DUARTE'
-            });
         });
     </script>
 </body>
