@@ -1,90 +1,124 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Excel Viewer and Editor</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css">
+    <title>Seguimiento de Actividades de Obra</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+        }
+
+        #actividades {
             margin: 20px;
         }
 
-        h1 {
-            text-align: center;
+        .actividad {
+            margin-bottom: 20px;
         }
 
-        #tableContainer {
-            margin: 20px auto;
-            width: 90%;
-            overflow-x: auto;
+        label {
+            margin-right: 10px;
         }
 
-        #saveBtn {
-            display: block;
-            margin: 20px auto;
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-
-        #saveBtn:hover {
-            background-color: #45a049;
+        #grafico {
+            margin: 20px;
         }
     </style>
 </head>
 <body>
-    <h1>Excel Viewer and Editor</h1>
-    <div id="tableContainer"></div>
-    <button id="saveBtn">Save Changes</button>
-
-    <script src="https://cdn.sheetjs.com/xlsx-0.16.9/package/dist/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+    <h1>Seguimiento de Actividades de Obra</h1>
+    <div id="actividades">
+        <div class="actividad" data-actividad="1">
+            <h2>Actividad 1</h2>
+            <label><input type="checkbox" name="actividad1" value="20"> 20%</label>
+            <label><input type="checkbox" name="actividad1" value="40"> 40%</label>
+            <label><input type="checkbox" name="actividad1" value="60"> 60%</label>
+            <label><input type="checkbox" name="actividad1" value="80"> 80%</label>
+            <label><input type="checkbox" name="actividad1" value="100"> 100%</label>
+        </div>
+        <div class="actividad" data-actividad="2">
+            <h2>Actividad 2</h2>
+            <label><input type="checkbox" name="actividad2" value="20"> 20%</label>
+            <label><input type="checkbox" name="actividad2" value="40"> 40%</label>
+            <label><input type="checkbox" name="actividad2" value="60"> 60%</label>
+            <label><input type="checkbox" name="actividad2" value="80"> 80%</label>
+            <label><input type="checkbox" name="actividad2" value="100"> 100%</label>
+        </div>
+        <!-- Añadir más actividades según sea necesario -->
+    </div>
+    <div id="grafico"></div>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <script>
-        let hot;
+        document.addEventListener("DOMContentLoaded", function() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
 
-        document.addEventListener('DOMContentLoaded', function() {
-            fetch('LP 30-16 Venezuela 3269 - PARA DUARTE.xlsx')
-                .then(response => response.arrayBuffer())
-                .then(data => {
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
+            // Cargar el estado guardado
+            loadState();
 
-                    const container = document.getElementById('tableContainer');
-                    hot = new Handsontable(container, {
-                        data: jsonData,
-                        rowHeaders: true,
-                        colHeaders: true,
-                        contextMenu: true,
-                        licenseKey: 'non-commercial-and-evaluation'
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const name = this.name;
+                    const others = document.querySelectorAll(`input[name="${name}"]`);
+                    others.forEach(other => {
+                        if (other !== this) other.checked = false;
                     });
-                })
-                .catch(error => console.error('Error fetching or reading Excel file:', error));
-        });
-
-        document.getElementById('saveBtn').addEventListener('click', function() {
-            const updatedData = hot.getData();
-            const url = 'http://localhost:3000/upload'; // Cambia la URL según la configuración de tu servidor
-
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ data: updatedData })
-            })
-            .then(response => response.text())
-            .then(message => {
-                alert(message);
-            })
-            .catch(error => {
-                console.error('Error al guardar los cambios:', error);
-                alert('Error al guardar los cambios.');
+                    saveState();
+                    updateGrafico();
+                });
             });
+
+            function saveState() {
+                const state = Array.from(document.querySelectorAll('.actividad')).map(actividad => {
+                    const selected = actividad.querySelector('input[type="checkbox"]:checked');
+                    return selected ? +selected.value : 0;
+                });
+                localStorage.setItem('actividadesState', JSON.stringify(state));
+            }
+
+            function loadState() {
+                const state = JSON.parse(localStorage.getItem('actividadesState'));
+                if (state) {
+                    document.querySelectorAll('.actividad').forEach((actividad, index) => {
+                        const value = state[index];
+                        if (value) {
+                            const checkbox = actividad.querySelector(`input[value="${value}"]`);
+                            if (checkbox) checkbox.checked = true;
+                        }
+                    });
+                }
+                updateGrafico();
+            }
+
+            function updateGrafico() {
+                const data = Array.from(document.querySelectorAll('.actividad')).map(actividad => {
+                    const selected = actividad.querySelector('input[type="checkbox"]:checked');
+                    return selected ? +selected.value : 0;
+                });
+
+                const svg = d3.select("#grafico").html("").append("svg")
+                    .attr("width", 500)
+                    .attr("height", 300);
+
+                const barHeight = 30;
+                svg.selectAll("rect")
+                    .data(data)
+                    .enter()
+                    .append("rect")
+                    .attr("width", d => d * 5)
+                    .attr("height", barHeight - 1)
+                    .attr("y", (d, i) => i * barHeight)
+                    .attr("fill", "steelblue");
+
+                svg.selectAll("text")
+                    .data(data)
+                    .enter()
+                    .append("text")
+                    .attr("x", d => d * 5 + 5)
+                    .attr("y", (d, i) => i * barHeight + barHeight / 2)
+                    .attr("dy", ".35em")
+                    .text(d => d + "%");
+            }
         });
     </script>
 </body>
