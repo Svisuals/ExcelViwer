@@ -29,6 +29,20 @@
 
         .tarefa {
             font-weight: bold;
+            text-align: left;
+            padding-left: 20px;
+        }
+
+        .tarefa[data-subtarefa="true"] {
+            padding-left: 40px;
+        }
+
+        .tarefa[data-subsubtarefa="true"] {
+            padding-left: 60px;
+        }
+
+        .editavel {
+            position: relative;
         }
 
         .editavel input {
@@ -48,19 +62,60 @@
             -moz-appearance: textfield;
         }
 
-        .tarefa {
-            text-align: left;
-            padding-left: 20px;
+        .progresso {
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .tarefa[data-subtarefa="true"] {
-            padding-left: 40px;
+        .progresso::before {
+            content: '●';
+            margin-right: 8px;
+            font-size: 1.5em;
         }
 
-        .tarefa[data-subsubtarefa="true"] {
-            padding-left: 60px;
+        .progresso[data-progresso="0"]::before {
+            color: red;
+        }
+
+        .progresso[data-progresso="100"]::before {
+            color: green;
+        }
+
+        .progresso[data-progresso="partial"]::before {
+            color: yellow;
+        }
+
+        .progresso input[type="number"] {
+            display: none;
         }
     </style>
+    <script>
+        function toggleEdit(input) {
+            input.previousElementSibling.style.display = 'none';
+            input.style.display = 'block';
+            input.focus();
+        }
+
+        function updateProgress(input) {
+            const value = input.value;
+            const display = input.previousElementSibling;
+
+            if (value == 0) {
+                display.setAttribute('data-progresso', '0');
+                display.textContent = '● 0%';
+            } else if (value == 100) {
+                display.setAttribute('data-progresso', '100');
+                display.textContent = '● 100%';
+            } else {
+                display.setAttribute('data-progresso', 'partial');
+                display.textContent = `● ${value}%`;
+            }
+
+            display.style.display = 'flex';
+            input.style.display = 'none';
+        }
+    </script>
 </head>
 <body>
     <h1>Acompanhamento de Atividades de Obra</h1>
@@ -94,7 +149,10 @@
                 <td>08 set 23</td>
                 <td>01 nov 23</td>
                 <td>58%</td>
-                <td class="editavel"><input type="number" value="13"></td>
+                <td class="editavel">
+                    <div class="progresso" data-progresso="partial" onclick="toggleEdit(this.nextElementSibling)">● 13%</div>
+                    <input type="number" value="13" onchange="updateProgress(this)">
+                </td>
                 <td class="editavel"><input type="date" value="2023-09-08"></td>
                 <td class="editavel"><input type="date"></td>
             </tr>
@@ -106,7 +164,10 @@
                 <td>08 set 23</td>
                 <td>12 set 23</td>
                 <td>100%</td>
-                <td class="editavel"><input type="number" value="100"></td>
+                <td class="editavel">
+                    <div class="progresso" data-progresso="100" onclick="toggleEdit(this.nextElementSibling)">● 100%</div>
+                    <input type="number" value="100" onchange="updateProgress(this)">
+                </td>
                 <td class="editavel"><input type="date" value="2023-09-08"></td>
                 <td class="editavel"><input type="date" value="2023-09-12"></td>
             </tr>
@@ -118,7 +179,10 @@
                 <td>08 set 23</td>
                 <td>12 set 23</td>
                 <td>100%</td>
-                <td class="editavel"><input type="number" value="100"></td>
+                <td class="editavel">
+                    <div class="progresso" data-progresso="100" onclick="toggleEdit(this.nextElementSibling)">● 100%</div>
+                    <input type="number" value="100" onchange="updateProgress(this)">
+                </td>
                 <td class="editavel"><input type="date" value="2023-09-08"></td>
                 <td class="editavel"><input type="date" value="2023-09-12"></td>
             </tr>
@@ -130,7 +194,10 @@
                 <td>08 set 23</td>
                 <td>10 set 23</td>
                 <td>100%</td>
-                <td class="editavel"><input type="number" value="100"></td>
+                <td class="editavel">
+                    <div class="progresso" data-progresso="100" onclick="toggleEdit(this.nextElementSibling)">● 100%</div>
+                    <input type="number" value="100" onchange="updateProgress(this)">
+                </td>
                 <td class="editavel"><input type="date" value="2023-09-08"></td>
                 <td class="editavel"><input type="date" value="2023-09-10"></td>
             </tr>
@@ -142,7 +209,10 @@
                 <td>08 set 23</td>
                 <td>10 set 23</td>
                 <td>100%</td>
-                <td class="editavel"><input type="number" value="100"></td>
+                <td class="editavel">
+                    <div class="progresso" data-progresso="100" onclick="toggleEdit(this.nextElementSibling)">● 100%</div>
+                    <input type="number" value="100" onchange="updateProgress(this)">
+                </td>
                 <td class="editavel"><input type="date" value="2023-09-08"></td>
                 <td class="editavel"><input type="date" value="2023-09-11"></td>
             </tr>
@@ -150,11 +220,14 @@
                 <td class="tarefa">INICIO DA OBRA</td>
                 <td>6</td>
                 <td>8%</td>
-                <td>1 dias</td>
+                <td>1 dia</td>
                 <td>10 set 23</td>
                 <td>10 set 23</td>
                 <td>100%</td>
-                <td class="editavel"><input type="number" value="100"></td>
+                <td class="editavel">
+                    <div class="progresso" data-progresso="100" onclick="toggleEdit(this.nextElementSibling)">● 100%</div>
+                    <input type="number" value="100" onchange="updateProgress(this)">
+                </td>
                 <td class="editavel"><input type="date"></td>
                 <td class="editavel"><input type="date"></td>
             </tr>
@@ -166,7 +239,10 @@
                 <td>11 set 23</td>
                 <td>01 nov 23</td>
                 <td>54%</td>
-                <td class="editavel"><input type="number" value="4"></td>
+                <td class="editavel">
+                    <div class="progresso" data-progresso="0" onclick="toggleEdit(this.nextElementSibling)">● 4%</div>
+                    <input type="number" value="4" onchange="updateProgress(this)">
+                </td>
                 <td class="editavel"><input type="date" value="2023-09-11"></td>
                 <td class="editavel"><input type="date"></td>
             </tr>
@@ -178,7 +254,10 @@
                 <td>11 set 23</td>
                 <td>16 out 23</td>
                 <td>78%</td>
-                <td class="editavel"><input type="number" value="49"></td>
+                <td class="editavel">
+                    <div class="progresso" data-progresso="partial" onclick="toggleEdit(this.nextElementSibling)">● 49%</div>
+                    <input type="number" value="49" onchange="updateProgress(this)">
+                </td>
                 <td class="editavel"><input type="date" value="2023-09-11"></td>
                 <td class="editavel"><input type="date"></td>
             </tr>
@@ -190,32 +269,56 @@
                 <td>11 set 23</td>
                 <td>27 set 23</td>
                 <td>100%</td>
-                <td class="editavel"><input type="number" value="100"></td>
+                <td class="editavel">
+                    <div class="progresso" data-progresso="100" onclick="toggleEdit(this.nextElementSibling)">● 100%</div>
+                    <input type="number" value="100" onchange="updateProgress(this)">
+                </td>
                 <td class="editavel"><input type="date" value="2023-09-11"></td>
                 <td class="editavel"><input type="date" value="2023-09-27"></td>
             </tr>
             <tr>
-                <td class="tarefa" data-subsubtarefa="true">PAREDES 1ª FACE + REFORÇOS+SEPTO</td>
+                <td class="tarefa">PAREDES 1ª FACE + REFORÇOS+SEPTO</td>
                 <td>10</td>
                 <td>58%</td>
                 <td>7 dias</td>
                 <td>11 set 23</td>
                 <td>17 set 23</td>
                 <td>100%</td>
-                <td class="editavel"><input type="number" value="100"></td>
+                <td class="editavel">
+                    <div class="progresso" data-progresso="100" onclick="toggleEdit(this.nextElementSibling)">● 100%</div>
+                    <input type="number" value="100" onchange="updateProgress(this)">
+                </td>
                 <td class="editavel"><input type="date" value="2023-09-11"></td>
                 <td class="editavel"><input type="date" value="2023-09-17"></td>
             </tr>
             <tr>
-                <td class="tarefa">FORROS</td>
+                <td class="tarefa">DRYWALL 2ª FACE+ACABAMENTOS</td>
+                <td>11</td>
+                <td>42%</td>
+                <td>5 dias</td>
+                <td>23 set 23</td>
+                <td>27 set 23</td>
+                <td>100%</td>
+                <td class="editavel">
+                    <div class="progresso" data-progresso="100" onclick="toggleEdit(this.nextElementSibling)">● 100%</div>
+                    <input type="number" value="100" onchange="updateProgress(this)">
+                </td>
+                <td class="editavel"><input type="date" value="2023-09-23"></td>
+                <td class="editavel"><input type="date" value="2023-09-27"></td>
+            </tr>
+            <tr>
+                <td class="tarefa" data-subsubtarefa="true">FORROS</td>
                 <td>12</td>
                 <td>51%</td>
                 <td>18 dias</td>
                 <td>29 set 23</td>
                 <td>16 out 23</td>
                 <td>57%</td>
-                <td class="editavel"><input type="number" value="0"></td>
-                <td class="editavel"><input type="date"></td>
+                <td class="editavel">
+                    <div class="progresso" data-progresso="0" onclick="toggleEdit(this.nextElementSibling)">● 0%</div>
+                    <input type="number" value="0" onchange="updateProgress(this)">
+                </td>
+                <td class="editavel"><input type="date" value="2023-09-29"></td>
                 <td class="editavel"><input type="date"></td>
             </tr>
         </tbody>
