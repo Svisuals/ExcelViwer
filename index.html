@@ -1,4 +1,22 @@
 <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cronograma de Obra</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href="#cronograma">Cronograma</a></li>
+            <li><a href="#graficos">Gráficos</a></li>
+        </ul>
+    </nav>
+
+    <div id="cronograma">
+        <!DOCTYPE html>
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
@@ -324,5 +342,19 @@
             </tr>
         </tbody>
     </table>
+</body>
+</html>
+
+    </div>
+
+    <div id="graficos" style="display:none;">
+        <h2>Gráficos de Execução e Status das Atividades</h2>
+        <div class="chart-container">
+            <div id="execucao-atividades"></div>
+            <div id="status-atividades"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
