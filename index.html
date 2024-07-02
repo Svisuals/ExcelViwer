@@ -3,104 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Página de Login</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Cronograma de Obras</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="login-container" class="container active">
-        <h2>Login</h2>
-        <input type="text" id="username" placeholder="Usuário">
-        <input type="password" id="password" placeholder="Senha">
-        <button class="btn" onclick="login()">Login</button>
-        <button class="btn" onclick="showRegister()">Registrar</button>
-        <button class="btn" onclick="showForgotPassword()">Esqueci a Senha</button>
-    </div>
-    <div id="register-container" class="container">
-        <h2>Registrar</h2>
-        <input type="text" id="new-username" placeholder="Usuário">
-        <input type="password" id="new-password" placeholder="Senha">
-        <button class="btn" onclick="register()">Registrar</button>
-        <button class="btn" onclick="showLogin()">Voltar</button>
-    </div>
-    <div id="forgot-password-container" class="container">
-        <h2>Recuperar Senha</h2>
-        <input type="text" id="forgot-username" placeholder="Usuário">
-        <button class="btn" onclick="forgotPassword()">Recuperar</button>
-        <button class="btn" onclick="showLogin()">Voltar</button>
-    </div>
-    <div id="app-container" style="display: none;">
-        <h1>Bem-vindo ao Sistema de Acompanhamento de Obras</h1>
-        <button class="btn" onclick="showSection('cronograma')">Cronograma</button>
-        <button class="btn" onclick="showSection('graficos')">Gráficos</button>
+    <nav>
+        <ul>
+            <li><a href="#cronograma">Cronograma</a></li>
+            <li><a href="#graficos">Gráficos</a></li>
+        </ul>
+    </nav>
 
-        <div id="cronograma-section" style="display: none;">
-            <h2>Cronograma de Atividades</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Tarefas</th>
-                        <th>Previsto</th>
-                        <th>Realizado</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Nome da Tarefa</td>
-                        <td>
-                            <table>
-                                <tr>
-                                    <th>Duração</th>
-                                    <th>Início</th>
-                                    <th>Término</th>
-                                    <th>Progresso</th>
-                                </tr>
-                            </table>
-                        </td>
-                        <td>
-                            <table>
-                                <tr>
-                                    <th>Progresso</th>
-                                    <th>Início</th>
-                                    <th>Término</th>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Obra</td>
-                        <td>
-                            <table>
-                                <tr>
-                                    <td>55 dias</td>
-                                    <td>08 set 23</td>
-                                    <td>01 nov 23</td>
-                                    <td>58%</td>
-                                </tr>
-                            </table>
-                        </td>
-                        <td>
-                            <table>
-                                <tr>
-                                    <td><div class="progress-bar" style="background-color: red;">13%</div></td>
-                                    <td>08 set 23</td>
-                                    <td>-</td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                    <!-- Adicione mais 9 atividades aqui -->
-                </tbody>
-            </table>
-        </div>
-
-        <div id="graficos-section" style="display: none;">
-            <h2>Gráficos</h2>
-            <div id="execucao-chart"></div>
-            <div id="status-chart"></div>
-        </div>
+    <div id="cronograma">
+        <!-- Conteúdo do cronograma aqui -->
     </div>
 
-    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <div id="graficos" style="display: none;">
+        <div id="execucao-chart" style="width: 50%; display: inline-block;"></div>
+        <div id="status-chart" style="width: 50%; display: inline-block;"></div>
+    </div>
+
+    <script src="https://d3js.org/d3.v6.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
