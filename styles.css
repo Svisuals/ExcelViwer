@@ -1,40 +1,58 @@
-/* Estilo do contêiner de login, registro e recuperação de senha */
-.container {
-    width: 300px;
-    margin: 0 auto;
-    padding: 20px;
-    border: 1px solid #ccc;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    display: none;
+body {
+    font-family: Arial, sans-serif;
+    background-color: #333;
+    color: #fff;
+    margin: 0;
+    padding: 0;
 }
-.container.active {
-    display: block;
+
+nav {
+    background-color: #444;
+    padding: 1em;
 }
-.btn {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    background: #007bff;
-    color: white;
-    border: none;
-    cursor: pointer;
+
+nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
 }
-table {
-    width: 100%;
-    border-collapse: collapse;
+
+nav ul li {
+    margin-right: 1em;
 }
-th, td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: center;
+
+nav ul li a {
+    color: #fff;
+    text-decoration: none;
 }
-th {
-    background-color: #f2f2f2;
+
+nav ul li a:hover {
+    text-decoration: underline;
 }
-.progress-bar {
-    width: 100%;
-    height: 20px;
-    color: white;
-    text-align: center;
+
+#cronograma, #graficos {
+    padding: 2em;
+}
+
+.chart {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+}
+
+.bar {
+    fill: steelblue;
+}
+
+.bar:nth-child(2) {
+    fill: grey;
+}
+
+.bar:nth-child(3) {
+    fill: red;
+}
+
+.label {
+    fill: white;
 }
