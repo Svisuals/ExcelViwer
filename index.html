@@ -3,20 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cronograma de Obra</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <title>Login</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <nav>
-        <ul>
-            <li><a href="#cronograma">Cronograma</a></li>
-            <li><a href="#graficos">Gráficos</a></li>
-        </ul>
-    </nav>
+    <div id="login-container">
+        <h2>Login</h2>
+        <form id="login-form">
+            <label for="username">Usuário</label>
+            <input type="text" id="username" name="username" required>
+            <label for="password">Senha</label>
+            <input type="password" id="password" name="password" required>
+            <button type="submit">Entrar</button>
+        </form>
+        <p id="login-error" style="color: red; display: none;">Usuário ou senha inválidos.</p>
+        <p><a href="#" id="show-register">Registrar</a> | <a href="#" id="show-forgot-password">Esqueceu a senha?</a></p>
+    </div>
 
-    <div id="cronograma">
-        <!DOCTYPE html>
+    <div id="register-container" style="display: none;">
+        <h2>Registrar</h2>
+        <form id="register-form">
+            <label for="new-username">Usuário</label>
+            <input type="text" id="new-username" name="new-username" required>
+            <label for="new-password">Senha</label>
+            <input type="password" id="new-password" name="new-password" required>
+            <button type="submit">Registrar</button>
+        </form>
+        <p id="register-error" style="color: red; display: none;">Usuário já existe.</p>
+        <p><a href="#" id="show-login">Já tem uma conta? Entrar</a></p>
+    </div>
+
+    <div id="forgot-password-container" style="display: none;">
+        <h2>Recuperar Senha</h2>
+        <form id="forgot-password-form">
+            <label for="forgot-username">Usuário</label>
+            <input type="text" id="forgot-username" name="forgot-username" required>
+            <button type="submit">Enviar</button>
+        </form>
+        <p id="forgot-password-error" style="color: red; display: none;">Usuário não encontrado.</p>
+        <p><a href="#" id="show-login-from-forgot">Voltar ao login</a></p>
+    </div>
+
+    <div id="site-content" style="display: none;">
+        <nav>
+            <ul>
+                <li><a href="#cronograma">Cronograma</a></li>
+                <li><a href="#graficos">Gráficos</a></li>
+            </ul>
+        </nav>
+
+        <div id="cronograma">
+            <!DOCTYPE html>
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
@@ -345,16 +382,15 @@
 </body>
 </html>
 
-    </div>
+        </div>
 
-    <div id="graficos" style="display:none;">
-        <h2>Gráficos de Execução e Status das Atividades</h2>
-        <div class="chart-container">
-            <div id="execucao-atividades"></div>
-            <div id="status-atividades"></div>
+        <div id="graficos" style="display: none;">
+            <div id="execucao-chart" style="width: 50%; display: inline-block;"></div>
+            <div id="status-chart" style="width: 50%; display: inline-block;"></div>
         </div>
     </div>
 
+    <script src="https://d3js.org/d3.v6.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
