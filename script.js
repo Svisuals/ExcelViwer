@@ -100,4 +100,20 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Gráfico de status das atividades
     createBarChart(statusData, "#status-chart");
+
+    // Atualização de progresso
+    const atualPercentInput = document.getElementById('atualPercent');
+    atualPercentInput.addEventListener('input', function(event) {
+        const index = parseInt(atualPercentInput.getAttribute('data-index'));
+        const newValue = parseInt(atualPercentInput.value);
+        
+        // Verifica se o progresso ainda não é 100%
+        if (newValue < 100) {
+            atividades[index].progresso = newValue;
+        }
+        atualPercentInput.value = atividades[index].progresso;
+    });
+
+    // Exibição inicial da primeira seção
+    sections[0].style.display = 'block';
 });
