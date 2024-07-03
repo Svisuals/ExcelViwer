@@ -6,53 +6,110 @@
     <title>Acompanhamento de Atividades de Obra</title>
     <style>
         body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f0f0;
-    color: #333;
-}
+            font-family: Arial, sans-serif;
+            background-color: #2c2c2c;
+            color: #fff;
+            padding: 20px;
+        }
 
-h1 {
-    text-align: center;
-    margin-top: 20px;
-}
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
+        th, td {
+            border: 1px solid #555;
+            padding: 8px;
+            text-align: center;
+        }
 
-th, td {
-    border: 1px solid #ccc;
-    padding: 8px;
-    text-align: center;
-}
+        th {
+            background-color: #444;
+        }
 
-.chart-container {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
-}
+        .tarefa {
+            font-weight: bold;
+            text-align: left;
+            padding-left: 20px;
+        }
 
-.chart-container div {
-    width: 48%;
-    border: 1px solid #ccc;
-    padding: 10px;
-    box-sizing: border-box;
-}
+        .tarefa[data-subtarefa="true"] {
+            padding-left: 40px;
+        }
 
-.hidden {
-    display: none;
-}
+        .tarefa[data-subsubtarefa="true"] {
+            padding-left: 60px;
+        }
 
+        .editavel {
+            position: relative;
+        }
+
+        .editavel input {
+            width: 100%;
+            box-sizing: border-box;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            text-align: center;
+        }
+
+        .editavel input[type="date"] {
+            -webkit-appearance: none;
+        }
+
+        .editavel input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        .progresso {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .progresso::before {
+            content: '●';
+            margin-right: 8px;
+            font-size: 1.5em;
+        }
+
+        .progresso[data-progresso="0"]::before {
+            color: red;
+        }
+
+        .progresso[data-progresso="100"]::before {
+            color: green;
+        }
+
+        .progresso[data-progresso="partial"]::before {
+            color: yellow;
+        }
+
+        .progresso input[type="number"] {
+            display: none;
+        }
+
+        .input-wrapper {
+            margin-top: 10px;
+        }
+
+        .input-wrapper input {
+            margin-left: 10px;
+        }
     </style>
-    <script src="script.js"></script>
 </head>
 <body>
     <h1>Acompanhamento de Atividades de Obra</h1>
 
-    <input type="file" id="input-csv" accept=".csv" />
-    
+    <!-- Input para seleccionar el archivo CSV -->
+    <div class="input-wrapper">
+        <label for="input-csv">Selecione o arquivo CSV:</label>
+        <input type="file" id="input-csv" accept=".csv">
+    </div>
+
     <table id="tabela-atividades">
         <thead>
             <tr>
@@ -73,8 +130,150 @@ th, td {
             </tr>
         </thead>
         <tbody id="corpo-tabela">
-            <!-- Os dados do CSV serão inseridos aqui -->
+            <!-- Aquí se insertarán las filas de datos -->
         </tbody>
     </table>
+
+    <script>
+        // Función para manejar el archivo seleccionado
+        document.getElementById('input-csv').addEventListener('change', handleFile);
+
+        function handleFile(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                const csv = event.target.result;
+                console.log(csv); // Verificar el contenido del CSV en la consola
+                const data = parseCSV(csv);
+                console.log(data); // Verificar los datos procesados en la consola
+                renderTable(data);
+            };
+
+            reader.readAsText(file);
+        }
+
+        // Función para parsear el CSV y convertirlo en datos estructurados
+        function parseCSV(csv) {
+            const lines = csv.split('\n');
+            const headers = lines[0].split(';').map(header => header.trim()); // Ajustar separador si es necesario
+
+            const data = [];
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(';').map(value => value.trim()); // Ajustar separador si es necesario
+                const entry = {};
+                for (let j = 0; j < headers.length; j++) {
+                    entry[headers[j]] = values[j];
+                }
+                data.push(entry);
+            }
+
+            return data;
+        }
+
+        // Función para renderizar los datos en la tabla HTML
+        function renderTable(data) {
+            const tbody = document.getElementById('corpo-tabela');
+            tbody.innerHTML = '';
+
+            data.forEach(item => {
+                const row = document.createElement('tr');
+
+                const tarefaCell = document.createElement('td');
+                tarefaCell.textContent = item['Tarefas'];
+                row.appendChild(tarefaCell);
+
+                const idCell = document.createElement('td');
+                idCell.textContent = item['ID'];
+                row.appendChild(idCell);
+
+                const pesoCell = document.createElement('td');
+                pesoCell.textContent = item['Peso'];
+                row.appendChild(pesoCell);
+
+                const duracaoCell = document.createElement('td');
+                duracaoCell.textContent = item['Duração'];
+                row.appendChild(duracaoCell);
+
+                const inicioPrevistoCell = document.createElement('td');
+                inicioPrevistoCell.textContent = item['inicio'];
+                row.appendChild(inicioPrevistoCell);
+
+                const terminoPrevistoCell = document.createElement('td');
+                terminoPrevistoCell.textContent = item['Término'];
+                row.appendChild(terminoPrevistoCell);
+
+                const progressoRealizadoCell = document.createElement('td');
+                progressoRealizadoCell.textContent = item['Progresso'];
+                row.appendChild(progressoRealizadoCell);
+
+                const progressoInputCell = document.createElement('td');
+                const progressoInputDiv = document.createElement('div');
+                progressoInputDiv.classList.add('editavel');
+                const progressoDisplay = document.createElement('div');
+                progressoDisplay.classList.add('progresso');
+                progressoDisplay.setAttribute('data-progresso', 'partial');
+                progressoDisplay.textContent = `● ${item['Progresso']}%`;
+                progressoDisplay.addEventListener('click', () => toggleEdit(progressoInput));
+                const progressoInput = document.createElement('input');
+                progressoInput.type = 'number';
+                progressoInput.value = item['Progresso'];
+                progressoInput.min = '0';
+                progressoInput.max = '100';
+                progressoInput.addEventListener('change', () => updateProgress(progressoInput));
+                progressoInput.style.display = 'none';
+                progressoInputDiv.appendChild(progressoDisplay);
+                progressoInputDiv.appendChild(progressoInput);
+                progressoInputCell.appendChild(progressoInputDiv);
+                row.appendChild(progressoInputCell);
+
+                const inicioRealizadoCell = document.createElement('td');
+                inicioRealizadoCell.classList.add('editavel');
+                const inicioRealizadoInput = document.createElement('input');
+                inicioRealizadoInput.type = 'date';
+                inicioRealizadoInput.value = item['Inicio'];
+                inicioRealizadoCell.appendChild(inicioRealizadoInput);
+                row.appendChild(inicioRealizadoCell);
+
+                const terminoRealizadoCell = document.createElement('td');
+                terminoRealizadoCell.classList.add('editavel');
+                const terminoRealizadoInput = document.createElement('input');
+                terminoRealizadoInput.type = 'date';
+                terminoRealizadoInput.value = item['Término'];
+                terminoRealizadoCell.appendChild(terminoRealizadoInput);
+                row.appendChild(terminoRealizadoCell);
+
+                tbody.appendChild(row);
+            });
+        }
+
+        // Función para alternar entre mostrar el display de progreso y el input
+        function toggleEdit(input) {
+            const display = input.previousElementSibling;
+            display.style.display = 'none';
+            input.style.display = 'block';
+            input.focus();
+        }
+
+        // Función para actualizar el progreso
+        function updateProgress(input) {
+            const value = input.value;
+            const display = input.previousElementSibling;
+
+            if (value == 0) {
+                display.setAttribute('data-progresso', '0');
+                display.textContent = '● 0%';
+            } else if (value == 100) {
+                display.setAttribute('data-progresso', '100');
+                display.textContent = '● 100%';
+            } else {
+                display.setAttribute('data-progresso', 'partial');
+                display.textContent = `● ${value}%`;
+            }
+
+            display.style.display = 'flex';
+            input.style.display = 'none';
+        }
+    </script>
 </body>
 </html>
