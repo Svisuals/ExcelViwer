@@ -104,7 +104,7 @@
 <body>
     <h1>Acompanhamento de Atividades de Obra</h1>
 
-    <!-- Input para seleccionar el archivo CSV -->
+    <!-- Input para selecionar o arquivo CSV -->
     <div class="input-wrapper">
         <label for="input-csv">Selecione o arquivo CSV:</label>
         <input type="file" id="input-csv" accept=".csv">
@@ -124,18 +124,17 @@
                 <th>Início</th>
                 <th>Término</th>
                 <th>Progresso</th>
-                <th>Progresso</th>
-                <th>Início</th>
+                <th>Inicio</th>
                 <th>Término</th>
             </tr>
         </thead>
         <tbody id="corpo-tabela">
-            <!-- Aquí se insertarán las filas de datos -->
+            <!-- Aqui serão inseridas as linhas de dados do CSV -->
         </tbody>
     </table>
 
     <script>
-        // Función para manejar el archivo seleccionado
+        // Função para lidar com o arquivo selecionado
         document.getElementById('input-csv').addEventListener('change', handleFile);
 
         function handleFile(e) {
@@ -144,34 +143,36 @@
 
             reader.onload = function(event) {
                 const csv = event.target.result;
-                console.log(csv); // Verificar el contenido del CSV en la consola
+                console.log(csv); // Verificar o conteúdo do CSV no console
                 const data = parseCSV(csv);
-                console.log(data); // Verificar los datos procesados en la consola
+                console.log(data); // Verificar os dados processados no console
                 renderTable(data);
             };
 
             reader.readAsText(file);
         }
 
-        // Función para parsear el CSV y convertirlo en datos estructurados
+        // Função para analisar o CSV e converter em dados estruturados
         function parseCSV(csv) {
             const lines = csv.split('\n');
-            const headers = lines[0].split(';').map(header => header.trim()); // Ajustar separador si es necesario
+            const headers = lines[0].split(';').map(header => header.trim()); // Ajustar separador se necessário
 
             const data = [];
             for (let i = 1; i < lines.length; i++) {
-                const values = lines[i].split(';').map(value => value.trim()); // Ajustar separador si es necesario
-                const entry = {};
-                for (let j = 0; j < headers.length; j++) {
-                    entry[headers[j]] = values[j];
+                const values = lines[i].split(';').map(value => value.trim()); // Ajustar separador se necessário
+                if (values.length === headers.length) {
+                    const entry = {};
+                    for (let j = 0; j < headers.length; j++) {
+                        entry[headers[j]] = values[j];
+                    }
+                    data.push(entry);
                 }
-                data.push(entry);
             }
 
             return data;
         }
 
-        // Función para renderizar los datos en la tabla HTML
+        // Função para renderizar os dados na tabela HTML
         function renderTable(data) {
             const tbody = document.getElementById('corpo-tabela');
             tbody.innerHTML = '';
@@ -196,7 +197,7 @@
                 row.appendChild(duracaoCell);
 
                 const inicioPrevistoCell = document.createElement('td');
-                inicioPrevistoCell.textContent = item['inicio'];
+                inicioPrevistoCell.textContent = item['Início'];
                 row.appendChild(inicioPrevistoCell);
 
                 const terminoPrevistoCell = document.createElement('td');
@@ -207,72 +208,16 @@
                 progressoRealizadoCell.textContent = item['Progresso'];
                 row.appendChild(progressoRealizadoCell);
 
-                const progressoInputCell = document.createElement('td');
-                const progressoInputDiv = document.createElement('div');
-                progressoInputDiv.classList.add('editavel');
-                const progressoDisplay = document.createElement('div');
-                progressoDisplay.classList.add('progresso');
-                progressoDisplay.setAttribute('data-progresso', 'partial');
-                progressoDisplay.textContent = `● ${item['Progresso']}%`;
-                progressoDisplay.addEventListener('click', () => toggleEdit(progressoInput));
-                const progressoInput = document.createElement('input');
-                progressoInput.type = 'number';
-                progressoInput.value = item['Progresso'];
-                progressoInput.min = '0';
-                progressoInput.max = '100';
-                progressoInput.addEventListener('change', () => updateProgress(progressoInput));
-                progressoInput.style.display = 'none';
-                progressoInputDiv.appendChild(progressoDisplay);
-                progressoInputDiv.appendChild(progressoInput);
-                progressoInputCell.appendChild(progressoInputDiv);
-                row.appendChild(progressoInputCell);
-
                 const inicioRealizadoCell = document.createElement('td');
-                inicioRealizadoCell.classList.add('editavel');
-                const inicioRealizadoInput = document.createElement('input');
-                inicioRealizadoInput.type = 'date';
-                inicioRealizadoInput.value = item['Inicio'];
-                inicioRealizadoCell.appendChild(inicioRealizadoInput);
+                inicioRealizadoCell.textContent = item['Inicio'];
                 row.appendChild(inicioRealizadoCell);
 
                 const terminoRealizadoCell = document.createElement('td');
-                terminoRealizadoCell.classList.add('editavel');
-                const terminoRealizadoInput = document.createElement('input');
-                terminoRealizadoInput.type = 'date';
-                terminoRealizadoInput.value = item['Término'];
-                terminoRealizadoCell.appendChild(terminoRealizadoInput);
+                terminoRealizadoCell.textContent = item['Término'];
                 row.appendChild(terminoRealizadoCell);
 
                 tbody.appendChild(row);
             });
-        }
-
-        // Función para alternar entre mostrar el display de progreso y el input
-        function toggleEdit(input) {
-            const display = input.previousElementSibling;
-            display.style.display = 'none';
-            input.style.display = 'block';
-            input.focus();
-        }
-
-        // Función para actualizar el progreso
-        function updateProgress(input) {
-            const value = input.value;
-            const display = input.previousElementSibling;
-
-            if (value == 0) {
-                display.setAttribute('data-progresso', '0');
-                display.textContent = '● 0%';
-            } else if (value == 100) {
-                display.setAttribute('data-progresso', '100');
-                display.textContent = '● 100%';
-            } else {
-                display.setAttribute('data-progresso', 'partial');
-                display.textContent = `● ${value}%`;
-            }
-
-            display.style.display = 'flex';
-            input.style.display = 'none';
         }
     </script>
 </body>
