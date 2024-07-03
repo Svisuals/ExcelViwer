@@ -1,56 +1,77 @@
 document.addEventListener("DOMContentLoaded", function() {
-    const atividades = [
-        {"nome": "Atividade 1", "progresso": 0, "previsto": "2024-07-01", "realizado": ""},
-        {"nome": "Atividade 2", "progresso": 20, "previsto": "2024-07-05", "realizado": ""},
-        {"nome": "Atividade 3", "progresso": 100, "previsto": "2024-07-10", "realizado": "2024-07-08"},
-        {"nome": "Atividade 4", "progresso": 50, "previsto": "2024-07-15", "realizado": ""},
-        {"nome": "Atividade 5", "progresso": 100, "previsto": "2024-07-20", "realizado": "2024-07-22"},
-        {"nome": "Atividade 6", "progresso": 0, "previsto": "2024-07-25", "realizado": ""},
-        {"nome": "Atividade 7", "progresso": 80, "previsto": "2024-07-30", "realizado": ""},
-        {"nome": "Atividade 8", "progresso": 100, "previsto": "2024-08-01", "realizado": "2024-07-30"},
-        {"nome": "Atividade 9", "progresso": 40, "previsto": "2024-08-05", "realizado": ""},
-        {"nome": "Atividade 10", "progresso": 100, "previsto": "2024-08-10", "realizado": "2024-08-09"}
+    const navLinks = document.querySelectorAll('nav ul li a');
+    const sections = document.querySelectorAll('body > div');
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', (event) => {
+            event.preventDefault();
+            const targetID = link.getAttribute('href').substring(1);
+            sections.forEach(section => {
+                if (section.id === targetID) {
+                    section.style.display = 'block';
+                } else {
+                    section.style.display = 'none';
+                }
+            });
+        });
+    });
+
+    const execucaoData = [
+        { status: "Planejada", value: 100 },
+        { status: "Iniciada", value: 0 },
+        { status: "Finalizada", value: 0 }
     ];
 
-    // Função para criar a tabela de atividades
-    function createAtividadesTable() {
-        const tableBody = document.querySelector('#atividades-table tbody');
-        tableBody.innerHTML = ''; // Limpa o conteúdo atual da tabela
+    const statusData = [
+        { status: "Em dia", value: 60 },
+        { status: "Antecipada", value: 0 },
+        { status: "Em atraso", value: 40 }
+    ];
 
-        atividades.forEach((atividade, index) => {
-            const row = document.createElement('tr');
+    function createBarChart(data, containerID) {
+        const container = d3.select(containerID);
+        const margin = { top: 20, right: 30, bottom: 40, left: 40 };
+        const width = parseInt(container.style("width")) - margin.left - margin.right;
+        const height = 300 - margin.top - margin.bottom;
 
-            // Coluna de nome da atividade
-            const nomeCell = document.createElement('td');
-            nomeCell.textContent = atividade.nome;
-            row.appendChild(nomeCell);
+        const svg = container.append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
 
-            // Coluna de atual %
-            const progressoCell = document.createElement('td');
-            const progressoInput = document.createElement('input');
-            progressoInput.type = 'number';
-            progressoInput.value = atividade.progresso;
-            progressoInput.addEventListener('input', () => {
-                // Atualiza o valor no objeto de atividades
-                atividades[index].progresso = parseInt(progressoInput.value);
-            });
-            progressoCell.appendChild(progressoInput);
-            row.appendChild(progressoCell);
+        const x = d3.scaleBand()
+            .domain(data.map(d => d.status))
+            .range([0, width])
+            .padding(0.1);
 
-            // Coluna de previsto
-            const previstoCell = document.createElement('td');
-            previstoCell.textContent = atividade.previsto;
-            row.appendChild(previstoCell);
+        const y = d3.scaleLinear()
+            .domain([0, d3.max(data, d => d.value)])
+            .nice()
+            .range([height, 0]);
 
-            // Coluna de realizado
-            const realizadoCell = document.createElement('td');
-            realizadoCell.textContent = atividade.realizado || '-';
-            row.appendChild(realizadoCell);
+        svg.append("g")
+            .selectAll(".bar")
+            .data(data)
+            .enter()
+            .append("rect")
+            .attr("class", "bar")
+            .attr("x", d => x(d.status))
+            .attr("y", d => y(d.value))
+            .attr("width", x.bandwidth())
+            .attr("height", d => height - y(d.value))
+            .attr("fill", (d, i) => ["steelblue", "grey", "red"][i]);
 
-            tableBody.appendChild(row);
-        });
+        svg.append("g")
+            .attr("class", "x-axis")
+            .attr("transform", `translate(0,${height})`)
+            .call(d3.axisBottom(x));
+
+        svg.append("g")
+            .attr("class", "y-axis")
+            .call(d3.axisLeft(y).ticks(10));
     }
 
-    // Chama a função para criar a tabela inicialmente
-    createAtividadesTable();
+    createBarChart(execucaoData, "#execucao-atividades");
+    createBarChart(statusData, "#status-atividades");
 });
