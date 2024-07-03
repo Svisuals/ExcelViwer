@@ -6,115 +6,51 @@
     <title>Acompanhamento de Atividades de Obra</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #2c2c2c;
-            color: #fff;
-        }
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    color: #333;
+}
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
+h1 {
+    text-align: center;
+    margin-top: 20px;
+}
 
-        th, td {
-            border: 1px solid #555;
-            padding: 8px;
-            text-align: center;
-        }
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
 
-        th {
-            background-color: #444;
-        }
+th, td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: center;
+}
 
-        .tarefa {
-            font-weight: bold;
-            text-align: left;
-            padding-left: 20px;
-        }
+.chart-container {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
 
-        .tarefa[data-subtarefa="true"] {
-            padding-left: 40px;
-        }
+.chart-container div {
+    width: 48%;
+    border: 1px solid #ccc;
+    padding: 10px;
+    box-sizing: border-box;
+}
 
-        .tarefa[data-subsubtarefa="true"] {
-            padding-left: 60px;
-        }
+.hidden {
+    display: none;
+}
 
-        .editavel {
-            position: relative;
-        }
-
-        .editavel input {
-            width: 100%;
-            box-sizing: border-box;
-            background-color: #333;
-            color: #fff;
-            border: none;
-            text-align: center;
-        }
-
-        .editavel input[type="date"] {
-            -webkit-appearance: none;
-        }
-
-        .editavel input[type="number"] {
-            -moz-appearance: textfield;
-        }
-
-        .progresso {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-
-        .progresso::before {
-            content: '●';
-            margin-right: 8px;
-            font-size: 1.5em;
-        }
-
-        .progresso[data-progresso="0"]::before {
-            color: red;
-        }
-
-        .progresso[data-progresso="100"]::before {
-            color: green;
-        }
-
-        .progresso[data-progresso="partial"]::before {
-            color: yellow;
-        }
-
-        .progresso input[type="number"] {
-            display: none;
-        }
-
-        .chart-container {
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .chart-container div {
-            width: 45%;
-        }
-
-        svg {
-            width: 100%;
-            height: 300px;
-        }
-
-        .hidden {
-            display: none;
-        }
     </style>
-    <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body>
     <h1>Acompanhamento de Atividades de Obra</h1>
 
-    <table>
+    <table id="tabela-atividades">
         <thead>
             <tr>
                 <th rowspan="2">Tarefas</th>
@@ -134,134 +70,13 @@
             </tr>
         </thead>
         <tbody>
-            <!-- Exemplo de 10 atividades -->
-            <tr>
-                <td class="tarefa">OBRA</td>
-                <td>1</td>
-                <td>100%</td>
-                <td>55 dias</td>
-                <td>08 set 23</td>
-                <td>01 nov 23</td>
-                <td>58%</td>
-                <td class="editavel">
-                    <div class="progresso" data-progresso="partial" onclick="toggleEdit(this.nextElementSibling)">● 58%</div>
-                    <input type="number" value="58" min="0" max="100" onchange="updateProgress(this)">
-                </td>
-                <td class="editavel"><input type="date" value="2023-09-08"></td>
-                <td class="editavel"><input type="date"></td>
-            </tr>
-            <!-- Adicione mais linhas conforme necessário -->
+            <!-- Linhas da tabela serão preenchidas dinamicamente com JavaScript -->
         </tbody>
     </table>
 
-    <h2>Gráficos de Execução e Status das Atividades</h2>
-    <div class="chart-container">
-        <div id="execucao-atividades"></div>
-        <div id="status-atividades"></div>
-    </div>
+    <input type="file" id="input-csv" accept=".csv">
+    <button onclick="carregarCSV()">Carregar CSV</button>
 
-    <script>
-        // Função para criar gráfico de barras
-        function createBarChart(data, containerID) {
-            const container = d3.select(containerID);
-            const margin = { top: 20, right: 30, bottom: 40, left: 40 };
-            const width = parseInt(container.style("width")) - margin.left - margin.right;
-            const height = 300 - margin.top - margin.bottom;
-
-            const svg = container.append("svg")
-                .attr("width", width + margin.left + margin.right)
-                .attr("height", height + margin.top + margin.bottom)
-                .append("g")
-                .attr("transform", `translate(${margin.left},${margin.top})`);
-
-            const x = d3.scaleBand()
-                .domain(data.map(d => d.status))
-                .range([0, width])
-                .padding(0.1);
-
-            const y = d3.scaleLinear()
-                .domain([0, d3.max(data, d => d.value)])
-                .nice()
-                .range([height, 0]);
-
-            svg.append("g")
-                .selectAll(".bar")
-                .data(data)
-                .enter()
-                .append("rect")
-                .attr("class", "bar")
-                .attr("x", d => x(d.status))
-                .attr("y", d => y(d.value))
-                .attr("width", x.bandwidth())
-                .attr("height", d => height - y(d.value))
-                .attr("fill", (d, i) => ["steelblue", "grey", "red"][i]);
-
-            svg.append("g")
-                .attr("class", "x-axis")
-                .attr("transform", `translate(0,${height})`)
-                .call(d3.axisBottom(x));
-
-            svg.append("g")
-                .attr("class", "y-axis")
-                .call(d3.axisLeft(y).ticks(10));
-
-            // Adicionar curva S (sigmoidal)
-            const line = d3.line()
-                .x(d => x(d.status) + x.bandwidth() / 2)
-                .y(d => y(d.value))
-                .curve(d3.curveS);
-
-            svg.append("path")
-                .datum(data)
-                .attr("class", "line")
-                .attr("d", line)
-                .attr("stroke", "orange")
-                .attr("stroke-width", 2)
-                .attr("fill", "none");
-        }
-
-        // Dados de exemplo para os gráficos
-        const execucaoData = [
-            { status: "Planejada", value: 100 },
-            { status: "Iniciada", value: 0 },
-            { status: "Finalizada", value: 0 }
-        ];
-
-        const statusData = [
-            { status: "Em dia", value: 60 },
-            { status: "Antecipada", value: 0 },
-            { status: "Em atraso", value: 40 }
-        ];
-
-        // Criar os gráficos
-        createBarChart(execucaoData, "#execucao-atividades");
-        createBarChart(statusData, "#status-atividades");
-
-        // Funções auxiliares para edição de progresso
-        function toggleEdit(input) {
-            input.previousElementSibling.style.display = 'none';
-            input.style.display = 'block';
-            input.focus();
-        }
-
-        function updateProgress(input) {
-            const value = input.value;
-            const display = input.previousElementSibling;
-
-            if (value == 0) {
-                display.setAttribute('data-progresso', '0');
-                display.textContent = '● 0%';
-            } else if (value == 100) {
-                display.setAttribute('data-progresso', '100');
-                display.textContent = '● 100%';
-            } else {
-                display.setAttribute('data-progresso', 'partial');
-                display.textContent = `● ${value}%`;
-            }
-
-            display.style.display = 'flex';
-            input.style.display = 'none';
-        }
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
