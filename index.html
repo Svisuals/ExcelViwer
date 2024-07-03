@@ -91,24 +91,25 @@
             display: none;
         }
 
-        .s-curve-container {
-            margin-top: 40px;
-            text-align: center;
+        .chart-container {
+            display: flex;
+            justify-content: space-between;
         }
 
-        .s-curve-chart {
-            display: inline-block;
-            width: 80%;
+        .chart-container div {
+            width: 45%;
+        }
+
+        svg {
+            width: 100%;
             height: 300px;
         }
 
-        .s-curve-info {
-            color: #ccc;
-            font-size: 14px;
-            margin-top: 10px;
+        .hidden {
+            display: none;
         }
     </style>
-    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body>
     <h1>Acompanhamento de Atividades de Obra</h1>
@@ -149,29 +150,94 @@
                 <td class="editavel"><input type="date" value="2023-09-08"></td>
                 <td class="editavel"><input type="date"></td>
             </tr>
-            <!-- Outras atividades omitidas por brevidade -->
+            <!-- Adicione mais linhas conforme necessário -->
         </tbody>
     </table>
 
-    <!-- Gráfico D3.js existente -->
-    <div id="grafico-container">
-        <svg id="grafico" width="100%" height="300"></svg>
-    </div>
-
-    <!-- Curva S -->
-    <div class="s-curve-container">
-        <h2>Curva S - Execução do Cronograma</h2>
-        <div class="s-curve-chart" id="s-curve-chart"></div>
-        <div class="s-curve-info">
-            Cumprir o prazo de entrega é fator fundamental para qualquer construção. Para entregar a obra dentro do prazo, é necessário ter acesso a uma série de informações. Dessa maneira, quanto maior for o detalhamento das atividades, mas fácil será a gestão do cronograma de obras.<br><br>
-            Portanto, a Curva S se mostra mais um elemento fundamental para a execução adequada de um cronograma. Por meio deste instrumento, torna-se possível cruzar informações e dados que já foram concluídos na obra, além de saber o quanto foi gasto.<br><br>
-            Desse modo, o balanceamento permite que o gestor de obra equilibre o calendário e os custos em uma previsibilidade operacional. É, portanto, um instrumento de gestão.<br><br>
-            A Curva S da obra tem como finalidade comparar de forma técnica o que foi planejado com o que está sendo executado. Por sua ampla utilização, além de intuitividade, diversos profissionais e empresas da construção civil utilizam a Curva S como instrumento de gestão nos projetos da construção civil.<br><br>
-            De forma resumida, a Curva S representa o percentual em um período de tempo determinado (dia, semana, quinzena ou mês). Além disso, destaca o percentual acumulado ao longo do tempo. Assim, essa ferramenta demonstra o volume desenvolvido no projeto.
-        </div>
+    <h2>Gráficos de Execução e Status das Atividades</h2>
+    <div class="chart-container">
+        <div id="execucao-atividades"></div>
+        <div id="status-atividades"></div>
     </div>
 
     <script>
+        // Função para criar gráfico de barras
+        function createBarChart(data, containerID) {
+            const container = d3.select(containerID);
+            const margin = { top: 20, right: 30, bottom: 40, left: 40 };
+            const width = parseInt(container.style("width")) - margin.left - margin.right;
+            const height = 300 - margin.top - margin.bottom;
+
+            const svg = container.append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
+
+            const x = d3.scaleBand()
+                .domain(data.map(d => d.status))
+                .range([0, width])
+                .padding(0.1);
+
+            const y = d3.scaleLinear()
+                .domain([0, d3.max(data, d => d.value)])
+                .nice()
+                .range([height, 0]);
+
+            svg.append("g")
+                .selectAll(".bar")
+                .data(data)
+                .enter()
+                .append("rect")
+                .attr("class", "bar")
+                .attr("x", d => x(d.status))
+                .attr("y", d => y(d.value))
+                .attr("width", x.bandwidth())
+                .attr("height", d => height - y(d.value))
+                .attr("fill", (d, i) => ["steelblue", "grey", "red"][i]);
+
+            svg.append("g")
+                .attr("class", "x-axis")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(x));
+
+            svg.append("g")
+                .attr("class", "y-axis")
+                .call(d3.axisLeft(y).ticks(10));
+
+            // Adicionar curva S (sigmoidal)
+            const line = d3.line()
+                .x(d => x(d.status) + x.bandwidth() / 2)
+                .y(d => y(d.value))
+                .curve(d3.curveS);
+
+            svg.append("path")
+                .datum(data)
+                .attr("class", "line")
+                .attr("d", line)
+                .attr("stroke", "orange")
+                .attr("stroke-width", 2)
+                .attr("fill", "none");
+        }
+
+        // Dados de exemplo para os gráficos
+        const execucaoData = [
+            { status: "Planejada", value: 100 },
+            { status: "Iniciada", value: 0 },
+            { status: "Finalizada", value: 0 }
+        ];
+
+        const statusData = [
+            { status: "Em dia", value: 60 },
+            { status: "Antecipada", value: 0 },
+            { status: "Em atraso", value: 40 }
+        ];
+
+        // Criar os gráficos
+        createBarChart(execucaoData, "#execucao-atividades");
+        createBarChart(statusData, "#status-atividades");
+
+        // Funções auxiliares para edição de progresso
         function toggleEdit(input) {
             input.previousElementSibling.style.display = 'none';
             input.style.display = 'block';
@@ -196,102 +262,6 @@
             display.style.display = 'flex';
             input.style.display = 'none';
         }
-
-        document.addEventListener("DOMContentLoaded", function() {
-            // Dados do gráfico D3.js existente
-            const dataset = [80, 100, 56, 120, 180, 30, 40, 120, 160];
-            
-            // Seleciona o SVG do gráfico
-            const svg = d3.select("#grafico");
-
-            // Escala linear para os dados
-            const yScale = d3.scaleLinear()
-                             .domain([0, d3.max(dataset)])
-                             .range([0, 300]);
-
-            // Seleciona todos os retângulos do gráfico
-            svg.selectAll("rect")
-               .data(dataset)
-               .enter()
-               .append("rect")
-               .attr("x", (d, i) => i * 45)
-               .attr("y", (d, i) => 300 - yScale(d))
-               .attr("width", 40)
-               .attr("height", (d, i) => yScale(d))
-               .attr("fill", "teal");
-
-            // Curva S
-            const sCurveData = [
-                { day: 0, percent: 0 },
-                { day: 20, percent: 10 },
-                { day: 40, percent: 30 },
-                { day: 60, percent: 60 },
-                { day: 80, percent: 90 },
-                { day: 100, percent: 100 }
-            ];
-
-            const margin = { top: 20, right: 30, bottom: 40, left: 40 };
-            const width = 600 - margin.left - margin.right;
-            const height = 300 - margin.top - margin.bottom;
-
-            const svgCurve = d3.select("#s-curve-chart")
-                               .append("svg")
-                               .attr("width", width + margin.left + margin.right)
-                               .attr("height", height + margin.top + margin.bottom)
-                               .append("g")
-                               .attr("transform", `translate(${margin.left},${margin.top})`);
-
-            const x = d3.scaleLinear()
-                        .domain([0, 100])
-                        .range([0, width]);
-
-            const y = d3.scaleLinear()
-                        .domain([0, 100])
-                        .range([height, 0]);
-
-            svgCurve.append("path")
-                    .datum(sCurveData)
-                    .attr("fill", "none")
-                    .attr("stroke", "steelblue")
-                    .attr("stroke-width", 2)
-                    .attr("d", d3.line()
-                        .x(d => x(d.day))
-                        .y(d => y(d.percent))
-                    );
-
-            svgCurve.selectAll("circle")
-                    .data(sCurveData)
-                    .enter()
-                    .append("circle")
-                    .attr("cx", d => x(d.day))
-                    .attr("cy", d => y(d.percent))
-                    .attr("r", 5)
-                    .attr("fill", "steelblue")
-                    .on("mouseover", function(d) {
-                        tooltip.transition()
-                            .duration(200)
-                            .style("opacity", .9);
-                        tooltip.html(`Dia ${d.day}: ${d.percent}%`)
-                            .style("left", (d3.event.pageX) + "px")
-                            .style("top", (d3.event.pageY - 28) + "px");
-                    })
-                    .on("mouseout", function(d) {
-                        tooltip.transition()
-                            .duration(500)
-                            .style("opacity", 0);
-                    });
-
-            svgCurve.append("g")
-                    .attr("transform", `translate(0,${height})`)
-                    .call(d3.axisBottom(x));
-
-            svgCurve.append("g")
-                    .call(d3.axisLeft(y));
-
-            const tooltip = d3.select("body").append("div")
-                              .attr("class", "tooltip")
-                              .style("opacity", 0);
-        });
     </script>
 </body>
 </html>
