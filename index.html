@@ -46,6 +46,7 @@ th, td {
 }
 
     </style>
+    <script src="script.js"></script>
 </head>
 <body>
     <h1>Acompanhamento de Atividades de Obra</h1>
@@ -55,7 +56,7 @@ th, td {
             <tr>
                 <th rowspan="2">Tarefas</th>
                 <th rowspan="2">ID</th>
-                <th colspan="5">Previsto</th>
+                <th colspan="4">Previsto</th>
                 <th colspan="3">Realizado</th>
             </tr>
             <tr>
@@ -69,14 +70,9 @@ th, td {
                 <th>Término</th>
             </tr>
         </thead>
-        <tbody>
-            <!-- Linhas da tabela serão preenchidas dinamicamente com JavaScript -->
+        <tbody id="corpo-tabela">
+            <!-- Os dados do CSV serão inseridos aqui -->
         </tbody>
     </table>
-
-    <input type="file" id="input-csv" accept=".csv">
-    <button onclick="carregarCSV()">Carregar CSV</button>
-
-    <script src="script.js"></script>
 </body>
 </html>
