@@ -120,21 +120,22 @@
             </tr>
             <tr>
                 <th>Peso</th>
-                <th>Duração</th>
+                <th>Duração (dias)</th>
                 <th>Início</th>
                 <th>Término</th>
                 <th>Progresso</th>
-                <th>Inicio</th>
+                <th>Progresso</th>
+                <th>Início</th>
                 <th>Término</th>
             </tr>
         </thead>
         <tbody id="corpo-tabela">
-            <!-- Aqui serão inseridas as linhas de dados do CSV -->
+            <!-- Aquí se insertarán las filas de datos -->
         </tbody>
     </table>
 
     <script>
-        // Função para lidar com o arquivo selecionado
+        // Función para manejar o arquivo selecionado
         document.getElementById('input-csv').addEventListener('change', handleFile);
 
         function handleFile(e) {
@@ -143,16 +144,16 @@
 
             reader.onload = function(event) {
                 const csv = event.target.result;
-                console.log(csv); // Verificar o conteúdo do CSV no console
+                console.log(csv); // Verificar o conteúdo do CSV na consola
                 const data = parseCSV(csv);
-                console.log(data); // Verificar os dados processados no console
+                console.log(data); // Verificar os dados processados na consola
                 renderTable(data);
             };
 
             reader.readAsText(file);
         }
 
-        // Função para analisar o CSV e converter em dados estruturados
+        // Función para parsear o CSV e convertê-lo em dados estruturados
         function parseCSV(csv) {
             const lines = csv.split('\n');
             const headers = lines[0].split(';').map(header => header.trim()); // Ajustar separador se necessário
@@ -160,19 +161,17 @@
             const data = [];
             for (let i = 1; i < lines.length; i++) {
                 const values = lines[i].split(';').map(value => value.trim()); // Ajustar separador se necessário
-                if (values.length === headers.length) {
-                    const entry = {};
-                    for (let j = 0; j < headers.length; j++) {
-                        entry[headers[j]] = values[j];
-                    }
-                    data.push(entry);
+                const entry = {};
+                for (let j = 0; j < headers.length; j++) {
+                    entry[headers[j]] = values[j];
                 }
+                data.push(entry);
             }
 
             return data;
         }
 
-        // Função para renderizar os dados na tabela HTML
+        // Función para renderizar os dados na tabela HTML
         function renderTable(data) {
             const tbody = document.getElementById('corpo-tabela');
             tbody.innerHTML = '';
@@ -189,11 +188,15 @@
                 row.appendChild(idCell);
 
                 const pesoCell = document.createElement('td');
-                pesoCell.textContent = item['Peso'];
+                pesoCell.textContent = item['Peso']; // Assumindo que 'Peso' já está em formato de porcentagem (25,00%)
                 row.appendChild(pesoCell);
 
                 const duracaoCell = document.createElement('td');
-                duracaoCell.textContent = item['Duração'];
+                const inicioPrevisto = new Date(item['Início']);
+                const terminoPrevisto = new Date(item['Término']);
+                const diffTime = Math.abs(terminoPrevisto - inicioPrevisto);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // Calcula diferença em dias
+                duracaoCell.textContent = diffDays.toString(); // Mostra a diferença em dias
                 row.appendChild(duracaoCell);
 
                 const inicioPrevistoCell = document.createElement('td');
@@ -208,16 +211,72 @@
                 progressoRealizadoCell.textContent = item['Progresso'];
                 row.appendChild(progressoRealizadoCell);
 
+                const progressoInputCell = document.createElement('td');
+                const progressoInputDiv = document.createElement('div');
+                progressoInputDiv.classList.add('editavel');
+                const progressoDisplay = document.createElement('div');
+                progressoDisplay.classList.add('progresso');
+                progressoDisplay.setAttribute('data-progresso', 'partial');
+                progressoDisplay.textContent = `● ${item['Progresso']}%`;
+                progressoDisplay.addEventListener('click', () => toggleEdit(progressoInput));
+                const progressoInput = document.createElement('input');
+                progressoInput.type = 'number';
+                progressoInput.value = item['Progresso'];
+                progressoInput.min = '0';
+                progressoInput.max = '100';
+                progressoInput.addEventListener('change', () => updateProgress(progressoInput));
+                progressoInput.style.display = 'none';
+                progressoInputDiv.appendChild(progressoDisplay);
+                progressoInputDiv.appendChild(progressoInput);
+                progressoInputCell.appendChild(progressoInputDiv);
+                row.appendChild(progressoInputCell);
+
                 const inicioRealizadoCell = document.createElement('td');
-                inicioRealizadoCell.textContent = item['Inicio'];
+                inicioRealizadoCell.classList.add('editavel');
+                const inicioRealizadoInput = document.createElement('input');
+                inicioRealizadoInput.type = 'date';
+                inicioRealizadoInput.value = item['Início'];
+                inicioRealizadoCell.appendChild(inicioRealizadoInput);
                 row.appendChild(inicioRealizadoCell);
 
                 const terminoRealizadoCell = document.createElement('td');
-                terminoRealizadoCell.textContent = item['Término'];
+                terminoRealizadoCell.classList.add('editavel');
+                const terminoRealizadoInput = document.createElement('input');
+                terminoRealizadoInput.type = 'date';
+                terminoRealizadoInput.value = item['Término'];
+                terminoRealizadoCell.appendChild(terminoRealizadoInput);
                 row.appendChild(terminoRealizadoCell);
 
                 tbody.appendChild(row);
             });
+        }
+
+        // Función para alternar entre mostrar o display de progresso e o input
+        function toggleEdit(input) {
+            const display = input.previousElementSibling;
+            display.style.display = 'none';
+            input.style.display = 'block';
+            input.focus();
+        }
+
+        // Función para atualizar o progresso
+        function updateProgress(input) {
+            const value = input.value;
+            const display = input.previousElementSibling;
+
+            if (value == 0) {
+                display.setAttribute('data-progresso', '0');
+                display.textContent = '● 0%';
+            } else if (value == 100) {
+                display.setAttribute('data-progresso', '100');
+                display.textContent = '● 100%';
+            } else {
+                display.setAttribute('data-progresso', 'partial');
+                display.textContent = `● ${value}%`;
+            }
+
+            display.style.display = 'flex';
+            input.style.display = 'none';
         }
     </script>
 </body>
