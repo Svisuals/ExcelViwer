@@ -119,7 +119,7 @@
                 <th colspan="3">Realizado</th>
             </tr>
             <tr>
-                <th>Peso</th>
+                <th>Peso (%)</th>
                 <th>Duração (dias)</th>
                 <th>Início</th>
                 <th>Término</th>
@@ -166,6 +166,11 @@
                     // Converte datas para formato ISO 8601 (aaaa-mm-dd) se necessário
                     if (headers[j].toLowerCase().includes('início') || headers[j].toLowerCase().includes('término')) {
                         entry[headers[j]] = convertToISODate(values[j]);
+                    } else if (headers[j].toLowerCase().includes('duração')) {
+                        // Calcula a duração em dias entre início e término
+                        entry[headers[j]] = calculateDuration(entry['Início'], entry['Término']);
+                    } else if (headers[j].toLowerCase().includes('peso')) {
+                        entry[headers[j]] = `${values[j]}%`; // Adiciona o símbolo de percentagem
                     } else {
                         entry[headers[j]] = values[j];
                     }
@@ -186,6 +191,15 @@
                 return `${year}-${month}-${day}`;
             }
             return dateString; // Retorna a data sem alterações se não estiver no formato esperado
+        }
+
+        // Função para calcular a duração em dias entre duas datas
+        function calculateDuration(startDate, endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const diffTime = Math.abs(end - start);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays;
         }
 
         // Função para renderizar os dados na tabela HTML
@@ -264,7 +278,7 @@
             });
         }
 
-        // Função para alternar entre exibir o display de progresso e o input
+        // Função para alternar entre mostrar o display de progresso e o input
         function toggleEdit(input) {
             const display = input.previousElementSibling;
             display.style.display = 'none';
