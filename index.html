@@ -200,11 +200,11 @@
                 row.appendChild(duracaoCell);
 
                 const inicioPrevistoCell = document.createElement('td');
-                inicioPrevistoCell.textContent = item['Início'];
+                inicioPrevistoCell.textContent = formatDate(item['Início']); // Formata como data
                 row.appendChild(inicioPrevistoCell);
 
                 const terminoPrevistoCell = document.createElement('td');
-                terminoPrevistoCell.textContent = item['Término'];
+                terminoPrevistoCell.textContent = formatDate(item['Término']); // Formata como data
                 row.appendChild(terminoPrevistoCell);
 
                 const progressoRealizadoCell = document.createElement('td');
@@ -235,7 +235,7 @@
                 inicioRealizadoCell.classList.add('editavel');
                 const inicioRealizadoInput = document.createElement('input');
                 inicioRealizadoInput.type = 'date';
-                inicioRealizadoInput.value = item['Início'];
+                inicioRealizadoInput.value = formatDate(item['Início']); // Formata como data
                 inicioRealizadoCell.appendChild(inicioRealizadoInput);
                 row.appendChild(inicioRealizadoCell);
 
@@ -243,7 +243,7 @@
                 terminoRealizadoCell.classList.add('editavel');
                 const terminoRealizadoInput = document.createElement('input');
                 terminoRealizadoInput.type = 'date';
-                terminoRealizadoInput.value = item['Término'];
+                terminoRealizadoInput.value = formatDate(item['Término']); // Formata como data
                 terminoRealizadoCell.appendChild(terminoRealizadoInput);
                 row.appendChild(terminoRealizadoCell);
 
@@ -277,6 +277,15 @@
 
             display.style.display = 'flex';
             input.style.display = 'none';
+        }
+
+        // Função para formatar a data no formato "dd/mm/aaaa"
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
         }
     </script>
 </body>
