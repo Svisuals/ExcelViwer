@@ -76,14 +76,12 @@ document.addEventListener("DOMContentLoaded", function() {
             .attr("fill", (d, i) => ["steelblue", "grey", "red"][i]);
 
         svg.append("g")
-            .attr("class", "x-axis")
+            .attr("class", "x-axis axis")
             .attr("transform", `translate(0,${height})`)
             .call(d3.axisBottom(x));
 
         svg.append("g")
-            .attr("class", "y
-        svg.append("g")
-            .attr("class", "y-axis")
+            .attr("class", "y-axis axis")
             .call(d3.axisLeft(y));
 
         svg.selectAll(".bar")

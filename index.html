@@ -1,75 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acompanhamento de Obra</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #333;
-            color: #fff;
-            margin: 0;
-            padding: 0;
-        }
-        nav {
-            background-color: #444;
-            padding: 1em;
-        }
-        nav ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            display: flex;
-        }
-        nav ul li {
-            margin-right: 1em;
-        }
-        nav ul li a {
-            color: #fff;
-            text-decoration: none;
-        }
-        nav ul li a:hover {
-            text-decoration: underline;
-        }
-        #cronograma, #graficos {
-            padding: 2em;
-        }
-        .chart {
-            display: flex;
-            justify-content: space-around;
-            flex-wrap: wrap;
-        }
-        .bar {
-            fill: steelblue;
-        }
-        .bar:nth-child(2) {
-            fill: grey;
-        }
-        .bar:nth-child(3) {
-            fill: red;
-        }
-        .label {
-            fill: white;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-        }
-        th {
-            background-color: #444;
-        }
-        .editavel input {
-            background-color: transparent;
-            border: none;
-            color: white;
-            width: 100%;
-        }
-    </style>
+    <title>Acompanhamento de Obras</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://d3js.org/d3.v6.min.js"></script>
 </head>
 <body>
     <nav>
@@ -78,185 +14,35 @@
             <li><a href="#graficos">Gráficos</a></li>
         </ul>
     </nav>
-
     <div id="cronograma">
-        <h1>Cronograma de Atividades</h1>
+        <h2>Cronograma</h2>
         <table>
             <thead>
                 <tr>
                     <th>Tarefa</th>
-                    <th>Código</th>
-                    <th>% Conclusão</th>
-                    <th>Duração</th>
-                    <th>Início Previsto</th>
-                    <th>Término Previsto</th>
+                    <th>Previsto</th>
+                    <th>Realizado</th>
                     <th>Progresso</th>
-                    <th>% Atual</th>
-                    <th>Data de Início</th>
-                    <th>Data de Término</th>
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td class="tarefa">DEMOLIÇÕES</td>
-                    <td>9</td>
-                    <td>4%</td>
-                    <td>2 dias</td>
-                    <td>17 set 23</td>
-                    <td>18 set 23</td>
-                    <td>100%</td>
-                    <td class="editavel">
-                        <div class="progresso" data-progresso="100" onclick="toggleEdit(this.nextElementSibling)">● 100%</div>
-                        <input type="number" value="100" min="0" max="100" onchange="updateProgress(this)">
-                    </td>
-                    <td class="editavel"><input type="date" value="2023-09-17"></td>
-                    <td class="editavel"><input type="date" value="2023-09-18"></td>
-                </tr>
-                <tr>
-                    <td class="tarefa">FUNDAÇÕES</td>
-                    <td>10</td>
-                    <td>24%</td>
-                    <td>15 dias</td>
-                    <td>18 set 23</td>
-                    <td>03 out 23</td>
-                    <td>20%</td>
-                    <td class="editavel">
-                        <div class="progresso" data-progresso="partial" onclick="toggleEdit(this.nextElementSibling)">● 20%</div>
-                        <input type="number" value="20" min="0" max="100" onchange="updateProgress(this)">
-                    </td>
-                    <td class="editavel"><input type="date" value="2023-09-18"></td>
-                    <td class="editavel"><input type="date"></td>
-                </tr>
+                <!-- Preenchido dinamicamente -->
             </tbody>
         </table>
     </div>
-
-    <div id="graficos">
-        <h1>Gráficos</h1>
-        <div id="execucao-chart"></div>
-        <div id="status-chart"></div>
+    <div id="graficos" style="display:none;">
+        <h2>Gráficos</h2>
+        <div class="chart">
+            <div>
+                <h3 class="chart-title">Execução das atividades</h3>
+                <div id="execucao-chart"></div>
+            </div>
+            <div>
+                <h3 class="chart-title">Status das atividades</h3>
+                <div id="status-chart"></div>
+            </div>
+        </div>
     </div>
-
-    <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const navLinks = document.querySelectorAll('nav ul li a');
-            const sections = document.querySelectorAll('body > div');
-
-            navLinks.forEach(link => {
-                link.addEventListener('click', (event) => {
-                    event.preventDefault();
-                    const targetID = link.getAttribute('href').substring(1);
-                    sections.forEach(section => {
-                        if (section.id === targetID) {
-                            section.style.display = 'block';
-                        } else {
-                            section.style.display = 'none';
-                        }
-                    });
-                });
-            });
-
-            const atividades = [
-                {"nome": "Atividade 1", "progresso": 0, "previsto": "2024-07-01", "realizado": ""},
-                {"nome": "Atividade 2", "progresso": 20, "previsto": "2024-07-05", "realizado": ""},
-                {"nome": "Atividade 3", "progresso": 100, "previsto": "2024-07-10", "realizado": "2024-07-08"},
-                {"nome": "Atividade 4", "progresso": 50, "previsto": "2024-07-15", "realizado": ""},
-                {"nome": "Atividade 5", "progresso": 100, "previsto": "2024-07-20", "realizado": "2024-07-22"},
-                {"nome": "Atividade 6", "progresso": 0, "previsto": "2024-07-25", "realizado": ""},
-                {"nome": "Atividade 7", "progresso": 80, "previsto": "2024-07-30", "realizado": ""},
-                {"nome": "Atividade 8", "progresso": 100, "previsto": "2024-08-01", "realizado": "2024-07-30"},
-                {"nome": "Atividade 9", "progresso": 40, "previsto": "2024-08-05", "realizado": ""},
-                {"nome": "Atividade 10", "progresso": 100, "previsto": "2024-08-10", "realizado": "2024-08-09"}
-            ];
-
-            const execucaoData = [
-                { status: "Planejada", value: atividades.filter(a => a.progresso === 0).length },
-                { status: "Iniciada", value: atividades.filter(a => a.progresso > 0 && a.progresso < 100).length },
-                { status: "Finalizada", value: atividades.filter(a => a.progresso === 100).length }
-            ];
-
-            const statusData = [
-                { status: "Em dia", value: atividades.filter(a => new Date(a.realizado) <= new Date(a.previsto) || a.realizado === "").length },
-                { status: "Antecipada", value: atividades.filter(a => new Date(a.realizado) < new Date(a.previsto) && a.realizado !== "").length },
-                { status: "Em atraso", value: atividades.filter(a => new Date(a.realizado) > new Date(a.previsto)).length }
-            ];
-
-            function createBarChart(data, containerID) {
-                const container = d3.select(containerID);
-                const margin = { top: 20, right: 30, bottom: 40, left: 40 };
-                const width = parseInt(container.style("width")) - margin.left - margin.right;
-                const height = 300 - margin.top - margin.bottom;
-
-                const svg = container.append("svg")
-                    .attr("width", width + margin.left + margin.right)
-                    .attr("height", height + margin.top + margin.bottom)
-                    .append("g")
-                    .attr("transform", `translate(${margin.left},${margin.top})`);
-
-                const x = d3.scaleBand()
-                    .domain(data.map(d => d.status))
-                    .range([0, width])
-                    .padding(0.1);
-
-                const y = d3.scaleLinear()
-                    .domain([0, d3.max(data, d => d.value)])
-                    .nice()
-                    .range([height, 0]);
-
-                svg.append("g")
-                    .selectAll(".bar")
-                    .data(data)
-                    .enter()
-                    .append("rect")
-                    .attr("class", "bar")
-                    .attr("x", d => x(d.status))
-                    .attr("y", d => y(d.value))
-                    .attr("width", x.bandwidth())
-                    .attr("height", d => height - y(d.value))
-                    .attr("fill", (d, i) => ["steelblue", "grey", "red"][i]);
-
-                svg.append("g")
-                    .attr("class", "x-axis")
-                    .attr("transform", `translate(0,${height})`)
-                    .call(d3.axisBottom(x));
-
-                svg.append("g")
-                    .attr("class", "y-axis")
-                    .call(d3.axisLeft(y));
-
-                svg.selectAll(".bar")
-                    .data(data)
-                    .enter()
-                    .append("text")
-                    .attr("class", "label")
-                    .attr("x", d => x(d.status) + x.bandwidth() / 2)
-                    .attr("y", d => y(d.value) - 5)
-                    .attr("text-anchor", "middle")
-                    .text(d => d.value);
-            }
-
-            // Gráfico de execução das atividades
-            createBarChart(execucaoData, "#execucao-chart");
-
-            // Gráfico de status das atividades
-            createBarChart(statusData, "#status-chart");
-        });
-
-        function toggleEdit(inputElement) {
-            const progressElement = inputElement.previousElementSibling;
-            if (progressElement.dataset.progresso === 'partial') {
-                inputElement.style.display = 'inline';
-                progressElement.style.display = 'none';
-            }
-        }
-
-        function updateProgress(inputElement) {
-            const progressElement = inputElement.previousElementSibling;
-            progressElement.textContent = `● ${inputElement.value}%`;
-            progressElement.style.display = 'inline';
-            inputElement.style.display = 'none';
-        }
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
