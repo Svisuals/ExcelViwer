@@ -159,12 +159,12 @@
                 const values = lines[i].split(';').map(value => value.trim()); // Ajustar separador se necessário
                 const entry = {};
                 for (let j = 0; j < headers.length; j++) {
-                    // Converte datas para formato ISO 8601 (aaaa-mm-dd) se necessário
+                    // Converte datas para o formato desejado (dd/mm/aaaa)
                     if (headers[j].toLowerCase().includes('início') || headers[j].toLowerCase().includes('término')) {
-                        entry[headers[j]] = convertToISODate(values[j]);
+                        entry[headers[j]] = values[j];
                     } else if (headers[j].toLowerCase().includes('duração')) {
                         // Calcula a duração em dias entre início e término
-                        entry[headers[j]] = calculateDuration(entry['Início'], entry['Término']);
+                        entry[headers[j]] = calculateDuration(values[j], values[j + 1]);
                     } else if (headers[j].toLowerCase().includes('peso')) {
                         entry[headers[j]] = `${values[j]}%`; // Adiciona o símbolo de percentagem
                     } else {
@@ -177,7 +177,18 @@
             return data;
         }
 
-        // Função para converter datas para formato ISO 8601 (aaaa-mm-dd)
+        // Função para calcular a duração em dias entre duas datas
+        function calculateDuration(startDate, endDate) {
+            const start = convertToISODate(startDate);
+            const end = convertToISODate(endDate);
+            const startDateObj = new Date(start);
+            const endDateObj = new Date(end);
+            const diffTime = Math.abs(endDateObj - startDateObj);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays;
+        }
+
+        // Função para converter datas de dd/mm/aaaa para o formato ISO 8601 (aaaa-mm-dd)
         function convertToISODate(dateString) {
             const parts = dateString.split('/');
             if (parts.length === 3) {
@@ -187,15 +198,6 @@
                 return `${year}-${month}-${day}`;
             }
             return dateString; // Retorna a data sem alterações se não estiver no formato esperado
-        }
-
-        // Função para calcular a duração em dias entre duas datas
-        function calculateDuration(startDate, endDate) {
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-            const diffTime = Math.abs(end - start);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            return diffDays;
         }
 
         // Função para renderizar os dados na tabela HTML
@@ -258,7 +260,7 @@
                 inicioRealizadoCell.classList.add('editavel');
                 const inicioRealizadoInput = document.createElement('input');
                 inicioRealizadoInput.type = 'date';
-                inicioRealizadoInput.value = item['Início'];
+                inicioRealizadoInput.value = convertToISODate(item['Início']);
                 inicioRealizadoCell.appendChild(inicioRealizadoInput);
                 row.appendChild(inicioRealizadoCell);
 
@@ -266,7 +268,7 @@
                 terminoRealizadoCell.classList.add('editavel');
                 const terminoRealizadoInput = document.createElement('input');
                 terminoRealizadoInput.type = 'date';
-                terminoRealizadoInput.value = item['Término'];
+                terminoRealizadoInput.value = convertToISODate(item['Término']);
                 terminoRealizadoCell.appendChild(terminoRealizadoInput);
                 row.appendChild(terminoRealizadoCell);
 
