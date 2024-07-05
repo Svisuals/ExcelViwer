@@ -152,21 +152,23 @@
 
         function parseCSV(csv) {
             const lines = csv.split('\n');
-            const headers = lines[0].split(';').map(header => header.trim()); // Aqui usamos ponto e vírgula
+            const headers = lines[0].split(';').map(header => header.trim());
 
             const data = [];
             for (let i = 1; i < lines.length; i++) {
-                const values = lines[i].split(';').map(value => value.trim()); // Aqui usamos ponto e vírgula
+                const values = lines[i].split(';');
+                if (values.length !== headers.length) continue; // Skip if number of values doesn't match headers
+
                 const entry = {};
                 for (let j = 0; j < headers.length; j++) {
                     if (headers[j].toLowerCase().includes('início') || headers[j].toLowerCase().includes('término')) {
-                        entry[headers[j]] = convertToISODate(values[j]);
+                        entry[headers[j]] = convertToISODate(values[j].trim());
                     } else if (headers[j].toLowerCase().includes('duração')) {
-                        entry[headers[j]] = calculateDuration(values[headers.indexOf('Previsto Início')], values[headers.indexOf('Previsto Término')]);
+                        entry[headers[j]] = calculateDuration(values[headers.indexOf('Previsto Início')].trim(), values[headers.indexOf('Previsto Término')].trim());
                     } else if (headers[j].toLowerCase().includes('peso')) {
-                        entry[headers[j]] = `${values[j]}%`;
+                        entry[headers[j]] = `${values[j].trim()}%`;
                     } else {
-                        entry[headers[j]] = values[j];
+                        entry[headers[j]] = values[j].trim();
                     }
                 }
                 data.push(entry);
