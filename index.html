@@ -101,17 +101,16 @@
         }
 
         .btn {
-            background-color: #4CAF50;
+            background-color: #4CAF50; /* Green */
+            border: none;
             color: white;
             padding: 10px 20px;
             text-align: center;
             text-decoration: none;
             display: inline-block;
             font-size: 16px;
-            margin-top: 20px;
+            margin-top: 10px;
             cursor: pointer;
-            border: none;
-            border-radius: 5px;
         }
 
         .btn:hover {
@@ -152,14 +151,13 @@
         </tbody>
     </table>
 
-    <!-- Botão para baixar arquivo CSV -->
+    <!-- Botão para baixar o arquivo CSV -->
     <button class="btn" id="btn-download-csv">Baixar CSV</button>
 
     <script>
-        document.getElementById('input-csv').addEventListener('change', handleFile);
-        document.getElementById('btn-download-csv').addEventListener('click', downloadCSV);
-
         let tableData = [];
+
+        document.getElementById('input-csv').addEventListener('change', handleFile);
 
         function handleFile(e) {
             const file = e.target.files[0];
@@ -167,9 +165,8 @@
 
             reader.onload = function(event) {
                 const csv = event.target.result;
-                const data = parseCSV(csv);
-                tableData = data;
-                renderTable(data);
+                tableData = parseCSV(csv);
+                renderTable(tableData);
             };
 
             reader.readAsText(file);
@@ -177,6 +174,15 @@
 
         function parseCSV(csv) {
             const lines = csv.split('\n');
+
+            // Limpar linhas vazias no início e no fim
+            while (lines.length > 0 && lines[0].trim() === '') {
+                lines.shift();
+            }
+            while (lines.length > 0 && lines[lines.length - 1].trim() === '') {
+                lines.pop();
+            }
+
             const headers = lines[0].split(';').map(header => header.trim());
 
             const data = [];
@@ -294,25 +300,25 @@
 
         function updateCellValue(input) {
             const rowIndex = input.closest('tr').rowIndex - 1;
-            const cellIndex = Array.from(input.parentNode.parentNode.children).indexOf(input.parentNode);
-            const columnHeader = document.getElementById('tabela-atividades').rows[0].cells[cellIndex].textContent;
-            tableData[rowIndex][columnHeader] = input.value;
+            const columnName = input.parentElement.previousElementSibling.textContent.trim();
+            const newValue = input.value;
+            tableData[rowIndex][columnName] = newValue;
         }
+
+        document.getElementById('btn-download-csv').addEventListener('click', downloadCSV);
 
         function downloadCSV() {
             const headers = Object.keys(tableData[0]);
-            let csv = headers.join(';') + '\n';
+            const csvContent = [
+                headers.join(';'),
+                ...tableData.map(item => headers.map(header => item[header]).join(';'))
+            ].join('\n');
 
-            tableData.forEach(item => {
-                const values = headers.map(header => item[header]);
-                csv += values.join(';') + '\n';
-            });
-
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
             link.setAttribute('href', url);
-            link.setAttribute('download', 'dados_obra.csv');
+            link.setAttribute('download', 'dados_modificados.csv');
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
