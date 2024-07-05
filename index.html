@@ -209,7 +209,7 @@
                 inicioPrevistoCell.classList.add('editavel');
                 const inicioPrevistoInput = document.createElement('input');
                 inicioPrevistoInput.type = 'date';
-                inicioPrevistoInput.value = item['Início'];
+                inicioPrevistoInput.value = item['Previsto Início']; // Usando o nome correto do campo do CSV
                 inicioPrevistoInput.addEventListener('change', () => updateCellValue(inicioPrevistoInput));
                 inicioPrevistoCell.appendChild(inicioPrevistoInput);
                 row.appendChild(inicioPrevistoCell);
@@ -218,7 +218,7 @@
                 terminoPrevistoCell.classList.add('editavel');
                 const terminoPrevistoInput = document.createElement('input');
                 terminoPrevistoInput.type = 'date';
-                terminoPrevistoInput.value = item['Término'];
+                terminoPrevistoInput.value = item['Previsto Término']; // Usando o nome correto do campo do CSV
                 terminoPrevistoInput.addEventListener('change', () => updateCellValue(terminoPrevistoInput));
                 terminoPrevistoCell.appendChild(terminoPrevistoInput);
                 row.appendChild(terminoPrevistoCell);
@@ -251,7 +251,7 @@
                 inicioRealizadoCell.classList.add('editavel');
                 const inicioRealizadoInput = document.createElement('input');
                 inicioRealizadoInput.type = 'date';
-                inicioRealizadoInput.value = item['Início'];
+                inicioRealizadoInput.value = item['Realizado Início']; // Usando o nome correto do campo do CSV
                 inicioRealizadoInput.addEventListener('change', () => updateCellValue(inicioRealizadoInput));
                 inicioRealizadoCell.appendChild(inicioRealizadoInput);
                 row.appendChild(inicioRealizadoCell);
@@ -260,7 +260,7 @@
                 terminoRealizadoCell.classList.add('editavel');
                 const terminoRealizadoInput = document.createElement('input');
                 terminoRealizadoInput.type = 'date';
-                terminoRealizadoInput.value = item['Término'];
+                terminoRealizadoInput.value = item['Realizado Término']; // Usando o nome correto do campo do CSV
                 terminoRealizadoInput.addEventListener('change', () => updateCellValue(terminoRealizadoInput));
                 terminoRealizadoCell.appendChild(terminoRealizadoInput);
                 row.appendChild(terminoRealizadoCell);
