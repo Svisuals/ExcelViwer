@@ -206,11 +206,21 @@
                 row.appendChild(duracaoCell);
 
                 const inicioPrevistoCell = document.createElement('td');
-                inicioPrevistoCell.textContent = item['Início'];
+                inicioPrevistoCell.classList.add('editavel');
+                const inicioPrevistoInput = document.createElement('input');
+                inicioPrevistoInput.type = 'date';
+                inicioPrevistoInput.value = item['Início'];
+                inicioPrevistoInput.addEventListener('change', () => updateCellValue(inicioPrevistoInput));
+                inicioPrevistoCell.appendChild(inicioPrevistoInput);
                 row.appendChild(inicioPrevistoCell);
 
                 const terminoPrevistoCell = document.createElement('td');
-                terminoPrevistoCell.textContent = item['Término'];
+                terminoPrevistoCell.classList.add('editavel');
+                const terminoPrevistoInput = document.createElement('input');
+                terminoPrevistoInput.type = 'date';
+                terminoPrevistoInput.value = item['Término'];
+                terminoPrevistoInput.addEventListener('change', () => updateCellValue(terminoPrevistoInput));
+                terminoPrevistoCell.appendChild(terminoPrevistoInput);
                 row.appendChild(terminoPrevistoCell);
 
                 const progressoRealizadoCell = document.createElement('td');
@@ -291,7 +301,6 @@
         }
 
         function updateCellValue(input) {
-            // Lógica adicional para tratar a atualização do valor da célula, se necessário
             console.log(`Novo valor: ${input.value}`);
         }
     </script>
