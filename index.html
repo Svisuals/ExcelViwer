@@ -57,6 +57,14 @@
 
         .editavel input[type="date"] {
             -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-color: #444;
+            color: #fff;
+        }
+
+        .editavel input[type="number"] {
+            -moz-appearance: textfield;
         }
 
         .progresso {
@@ -70,22 +78,6 @@
             content: '●';
             margin-right: 8px;
             font-size: 1.5em;
-        }
-
-        .progresso[data-progresso="0"]::before {
-            color: red;
-        }
-
-        .progresso[data-progresso="100"]::before {
-            color: green;
-        }
-
-        .progresso[data-progresso="partial"]::before {
-            color: yellow;
-        }
-
-        .progresso input[type="number"] {
-            display: none;
         }
 
         .input-wrapper {
@@ -131,7 +123,6 @@
     </table>
 
     <script>
-        // Função para lidar com o arquivo selecionado
         document.getElementById('input-csv').addEventListener('change', handleFile);
 
         function handleFile(e) {
@@ -140,33 +131,28 @@
 
             reader.onload = function(event) {
                 const csv = event.target.result;
-                console.log(csv); // Verifique o conteúdo do CSV no console
                 const data = parseCSV(csv);
-                console.log(data); // Verifique os dados processados no console
                 renderTable(data);
             };
 
             reader.readAsText(file);
         }
 
-        // Função para analisar o CSV e convertê-lo em dados estruturados
         function parseCSV(csv) {
             const lines = csv.split('\n');
-            const headers = lines[0].split(';').map(header => header.trim()); // Ajustar separador se necessário
-
+            const headers = lines[0].split(';').map(header => header.trim());
             const data = [];
+
             for (let i = 1; i < lines.length; i++) {
-                const values = lines[i].split(';').map(value => value.trim()); // Ajustar separador se necessário
+                const values = lines[i].split(';').map(value => value.trim());
                 const entry = {};
                 for (let j = 0; j < headers.length; j++) {
-                    // Converte datas para o formato desejado (dd/mm/aaaa)
                     if (headers[j].toLowerCase().includes('início') || headers[j].toLowerCase().includes('término')) {
-                        entry[headers[j]] = values[j];
+                        entry[headers[j]] = convertToISODate(values[j]);
                     } else if (headers[j].toLowerCase().includes('duração')) {
-                        // Calcula a duração em dias entre início e término
-                        entry[headers[j]] = calculateDuration(values[j], values[j + 1]);
+                        entry[headers[j]] = calculateDuration(entry['Início'], entry['Término']);
                     } else if (headers[j].toLowerCase().includes('peso')) {
-                        entry[headers[j]] = `${values[j]}%`; // Adiciona o símbolo de percentagem
+                        entry[headers[j]] = `${values[j]}%`;
                     } else {
                         entry[headers[j]] = values[j];
                     }
@@ -177,18 +163,6 @@
             return data;
         }
 
-        // Função para calcular a duração em dias entre duas datas
-        function calculateDuration(startDate, endDate) {
-            const start = convertToISODate(startDate);
-            const end = convertToISODate(endDate);
-            const startDateObj = new Date(start);
-            const endDateObj = new Date(end);
-            const diffTime = Math.abs(endDateObj - startDateObj);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            return diffDays;
-        }
-
-        // Função para converter datas de dd/mm/aaaa para o formato ISO 8601 (aaaa-mm-dd)
         function convertToISODate(dateString) {
             const parts = dateString.split('/');
             if (parts.length === 3) {
@@ -197,10 +171,17 @@
                 const year = parts[2];
                 return `${year}-${month}-${day}`;
             }
-            return dateString; // Retorna a data sem alterações se não estiver no formato esperado
+            return dateString;
         }
 
-        // Função para renderizar os dados na tabela HTML
+        function calculateDuration(startDate, endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const diffTime = Math.abs(end - start);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays;
+        }
+
         function renderTable(data) {
             const tbody = document.getElementById('corpo-tabela');
             tbody.innerHTML = '';
@@ -260,7 +241,8 @@
                 inicioRealizadoCell.classList.add('editavel');
                 const inicioRealizadoInput = document.createElement('input');
                 inicioRealizadoInput.type = 'date';
-                inicioRealizadoInput.value = convertToISODate(item['Início']);
+                inicioRealizadoInput.value = item['Início'];
+                inicioRealizadoInput.addEventListener('change', () => updateCellValue(inicioRealizadoInput));
                 inicioRealizadoCell.appendChild(inicioRealizadoInput);
                 row.appendChild(inicioRealizadoCell);
 
@@ -268,7 +250,8 @@
                 terminoRealizadoCell.classList.add('editavel');
                 const terminoRealizadoInput = document.createElement('input');
                 terminoRealizadoInput.type = 'date';
-                terminoRealizadoInput.value = convertToISODate(item['Término']);
+                terminoRealizadoInput.value = item['Término'];
+                terminoRealizadoInput.addEventListener('change', () => updateCellValue(terminoRealizadoInput));
                 terminoRealizadoCell.appendChild(terminoRealizadoInput);
                 row.appendChild(terminoRealizadoCell);
 
@@ -276,22 +259,40 @@
             });
         }
 
-        // Função para alternar entre mostrar o display de progresso e o input
         function toggleEdit(input) {
-            const display = input.previousElementSibling;
-            display.style.display = 'none';
-            input.style.display = 'block';
+            const isVisible = input.style.display === 'block';
+            input.style.display = isVisible ? 'none' : 'block';
             input.focus();
         }
 
-        // Função para atualizar o progresso
         function updateProgress(input) {
             const value = input.value;
-            const display = input.parentElement.previousElementSibling;
+            const display = input.previousElementSibling;
             display.textContent = `● ${value}%`;
-            display.setAttribute('data-progresso', value);
             input.style.display = 'none';
-            display.style.display = 'block';
+
+            const cell = input.closest('td');
+            cell.style.backgroundColor = getColorBasedOnProgress(value);
+        }
+
+        function getColorBasedOnProgress(progress) {
+            const percentage = parseInt(progress);
+            if (percentage <= 20) {
+                return '#ff0000'; // Red
+            } else if (percentage <= 40) {
+                return '#ffa500'; // Orange
+            } else if (percentage <= 60) {
+                return '#ffff00'; // Yellow
+            } else if (percentage <= 80) {
+                return '#008000'; // Green
+            } else {
+                return '#0000ff'; // Blue
+            }
+        }
+
+        function updateCellValue(input) {
+            // Lógica adicional para tratar a atualização do valor da célula, se necessário
+            console.log(`Novo valor: ${input.value}`);
         }
     </script>
 </body>
