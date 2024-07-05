@@ -57,10 +57,6 @@
 
         .editavel input[type="date"] {
             -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            background-color: #444;
-            color: #fff;
         }
 
         .editavel input[type="number"] {
@@ -78,6 +74,22 @@
             content: '●';
             margin-right: 8px;
             font-size: 1.5em;
+        }
+
+        .progresso[data-progresso="0"]::before {
+            color: red;
+        }
+
+        .progresso[data-progresso="100"]::before {
+            color: green;
+        }
+
+        .progresso[data-progresso="partial"]::before {
+            color: yellow;
+        }
+
+        .progresso input[type="number"] {
+            display: none;
         }
 
         .input-wrapper {
@@ -141,8 +153,8 @@
         function parseCSV(csv) {
             const lines = csv.split('\n');
             const headers = lines[0].split(';').map(header => header.trim());
-            const data = [];
 
+            const data = [];
             for (let i = 1; i < lines.length; i++) {
                 const values = lines[i].split(';').map(value => value.trim());
                 const entry = {};
@@ -150,7 +162,7 @@
                     if (headers[j].toLowerCase().includes('início') || headers[j].toLowerCase().includes('término')) {
                         entry[headers[j]] = convertToISODate(values[j]);
                     } else if (headers[j].toLowerCase().includes('duração')) {
-                        entry[headers[j]] = calculateDuration(entry['Início'], entry['Término']);
+                        entry[headers[j]] = calculateDuration(values[headers.indexOf('Previsto Início')], values[headers.indexOf('Previsto Término')]);
                     } else if (headers[j].toLowerCase().includes('peso')) {
                         entry[headers[j]] = `${values[j]}%`;
                     } else {
@@ -209,7 +221,7 @@
                 inicioPrevistoCell.classList.add('editavel');
                 const inicioPrevistoInput = document.createElement('input');
                 inicioPrevistoInput.type = 'date';
-                inicioPrevistoInput.value = item['Previsto Início']; // Usando o nome correto do campo do CSV
+                inicioPrevistoInput.value = item['Previsto Início'];
                 inicioPrevistoInput.addEventListener('change', () => updateCellValue(inicioPrevistoInput));
                 inicioPrevistoCell.appendChild(inicioPrevistoInput);
                 row.appendChild(inicioPrevistoCell);
@@ -218,40 +230,24 @@
                 terminoPrevistoCell.classList.add('editavel');
                 const terminoPrevistoInput = document.createElement('input');
                 terminoPrevistoInput.type = 'date';
-                terminoPrevistoInput.value = item['Previsto Término']; // Usando o nome correto do campo do CSV
+                terminoPrevistoInput.value = item['Previsto Término'];
                 terminoPrevistoInput.addEventListener('change', () => updateCellValue(terminoPrevistoInput));
                 terminoPrevistoCell.appendChild(terminoPrevistoInput);
                 row.appendChild(terminoPrevistoCell);
 
-                const progressoRealizadoCell = document.createElement('td');
-                progressoRealizadoCell.textContent = item['Progresso'];
-                row.appendChild(progressoRealizadoCell);
+                const progressoPrevistoCell = document.createElement('td');
+                progressoPrevistoCell.textContent = item['Progresso Previsto'];
+                row.appendChild(progressoPrevistoCell);
 
-                const progressoInputCell = document.createElement('td');
-                const progressoInputDiv = document.createElement('div');
-                progressoInputDiv.classList.add('editavel');
-                const progressoDisplay = document.createElement('div');
-                progressoDisplay.classList.add('progresso');
-                progressoDisplay.setAttribute('data-progresso', 'partial');
-                progressoDisplay.textContent = `● ${item['Progresso']}%`;
-                progressoDisplay.addEventListener('click', () => toggleEdit(progressoInput));
-                const progressoInput = document.createElement('input');
-                progressoInput.type = 'number';
-                progressoInput.value = item['Progresso'];
-                progressoInput.min = '0';
-                progressoInput.max = '100';
-                progressoInput.addEventListener('change', () => updateProgress(progressoInput));
-                progressoInput.style.display = 'none';
-                progressoInputDiv.appendChild(progressoDisplay);
-                progressoInputDiv.appendChild(progressoInput);
-                progressoInputCell.appendChild(progressoInputDiv);
-                row.appendChild(progressoInputCell);
+                const progressoRealizadoCell = document.createElement('td');
+                progressoRealizadoCell.textContent = item['Progresso Realizado'];
+                row.appendChild(progressoRealizadoCell);
 
                 const inicioRealizadoCell = document.createElement('td');
                 inicioRealizadoCell.classList.add('editavel');
                 const inicioRealizadoInput = document.createElement('input');
                 inicioRealizadoInput.type = 'date';
-                inicioRealizadoInput.value = item['Realizado Início']; // Usando o nome correto do campo do CSV
+                inicioRealizadoInput.value = item['Realizado Início'];
                 inicioRealizadoInput.addEventListener('change', () => updateCellValue(inicioRealizadoInput));
                 inicioRealizadoCell.appendChild(inicioRealizadoInput);
                 row.appendChild(inicioRealizadoCell);
@@ -260,7 +256,7 @@
                 terminoRealizadoCell.classList.add('editavel');
                 const terminoRealizadoInput = document.createElement('input');
                 terminoRealizadoInput.type = 'date';
-                terminoRealizadoInput.value = item['Realizado Término']; // Usando o nome correto do campo do CSV
+                terminoRealizadoInput.value = item['Realizado Término'];
                 terminoRealizadoInput.addEventListener('change', () => updateCellValue(terminoRealizadoInput));
                 terminoRealizadoCell.appendChild(terminoRealizadoInput);
                 row.appendChild(terminoRealizadoCell);
@@ -269,39 +265,9 @@
             });
         }
 
-        function toggleEdit(input) {
-            const isVisible = input.style.display === 'block';
-            input.style.display = isVisible ? 'none' : 'block';
-            input.focus();
-        }
-
-        function updateProgress(input) {
-            const value = input.value;
-            const display = input.previousElementSibling;
-            display.textContent = `● ${value}%`;
-            input.style.display = 'none';
-
-            const cell = input.closest('td');
-            cell.style.backgroundColor = getColorBasedOnProgress(value);
-        }
-
-        function getColorBasedOnProgress(progress) {
-            const percentage = parseInt(progress);
-            if (percentage <= 20) {
-                return '#ff0000'; // Red
-            } else if (percentage <= 40) {
-                return '#ffa500'; // Orange
-            } else if (percentage <= 60) {
-                return '#ffff00'; // Yellow
-            } else if (percentage <= 80) {
-                return '#008000'; // Green
-            } else {
-                return '#0000ff'; // Blue
-            }
-        }
-
         function updateCellValue(input) {
-            console.log(`Novo valor: ${input.value}`);
+            const cell = input.parentElement;
+            cell.dataset.value = input.value;
         }
     </script>
 </body>
