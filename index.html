@@ -59,10 +59,6 @@
             -webkit-appearance: none;
         }
 
-        .editavel input[type="number"] {
-            -moz-appearance: textfield;
-        }
-
         .progresso {
             display: flex;
             align-items: center;
@@ -100,26 +96,25 @@
             margin-left: 10px;
         }
 
-        .drag-handle {
-            cursor: move;
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            background-color: #aaa;
-            margin-right: 5px;
-            border-radius: 50%;
+        .drop-zone {
+            border: 2px dashed #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .drop-zone.active {
+            border-color: #6c6;
         }
     </style>
 </head>
 <body>
     <h1>Acompanhamento de Atividades de Obra</h1>
 
-    <!-- Input para selecionar o arquivo CSV -->
-    <div class="input-wrapper">
-        <label for="input-csv">Selecione o arquivo CSV:</label>
-        <input type="file" id="input-csv" accept=".csv">
-    </div>
+    <!-- Drop zone para receber as linhas arrastadas -->
+    <div id="drop-zone" class="drop-zone">Arraste e solte as linhas aqui para criar uma estrutura de árvore.</div>
 
+    <!-- Tabela de atividades -->
     <table id="tabela-atividades">
         <thead>
             <tr>
@@ -141,200 +136,123 @@
         </thead>
         <tbody id="corpo-tabela">
             <!-- Aqui serão inseridas as linhas de dados -->
+            <tr data-id="1">
+                <td class="tarefa">Tarefa Principal</td>
+                <td>1</td>
+                <td>50%</td>
+                <td>10</td>
+                <td>2024-07-10</td>
+                <td>2024-07-20</td>
+                <td>50%</td>
+                <td>50%</td>
+                <td>2024-07-11</td>
+                <td>2024-07-15</td>
+            </tr>
+            <tr data-id="2">
+                <td class="tarefa" data-subtarefa="true">Subtarefa 1</td>
+                <td>2</td>
+                <td>30%</td>
+                <td>5</td>
+                <td>2024-07-12</td>
+                <td>2024-07-16</td>
+                <td>20%</td>
+                <td>20%</td>
+                <td>2024-07-12</td>
+                <td>2024-07-14</td>
+            </tr>
+            <tr data-id="3">
+                <td class="tarefa" data-subtarefa="true">Subtarefa 2</td>
+                <td>3</td>
+                <td>20%</td>
+                <td>3</td>
+                <td>2024-07-15</td>
+                <td>2024-07-18</td>
+                <td>30%</td>
+                <td>10%</td>
+                <td>2024-07-16</td>
+                <td>2024-07-17</td>
+            </tr>
         </tbody>
     </table>
 
     <script>
-        document.getElementById('input-csv').addEventListener('change', handleFile);
-
-        function handleFile(e) {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-
-            reader.onload = function(event) {
-                const csv = event.target.result;
-                const data = parseCSV(csv);
-                renderTable(data);
-                setupDragAndDrop();
-            };
-
-            reader.readAsText(file);
-        }
-
-        function parseCSV(csv) {
-            const lines = csv.split('\n');
-            const headers = lines[0].split(';').map(header => header.trim());
-
-            const data = [];
-            for (let i = 1; i < lines.length; i++) {
-                const values = lines[i].split(';').map(value => value.trim());
-                const entry = {};
-                for (let j = 0; j < headers.length; j++) {
-                    if (headers[j].toLowerCase().includes('início') || headers[j].toLowerCase().includes('término')) {
-                        entry[headers[j]] = convertToISODate(values[j]);
-                    } else if (headers[j].toLowerCase().includes('duração')) {
-                        entry[headers[j]] = calculateDuration(values[headers.indexOf('Previsto Início')], values[headers.indexOf('Previsto Término')]);
-                    } else if (headers[j].toLowerCase().includes('peso')) {
-                        entry[headers[j]] = `${values[j]}%`;
-                    } else {
-                        entry[headers[j]] = values[j];
-                    }
-                }
-                data.push(entry);
-            }
-
-            return data;
-        }
-
-        function convertToISODate(dateString) {
-            const parts = dateString.split('/');
-            if (parts.length === 3) {
-                const day = parts[0].padStart(2, '0');
-                const month = parts[1].padStart(2, '0');
-                const year = parts[2];
-                return `${year}-${month}-${day}`;
-            }
-            return dateString;
-        }
-
-        function calculateDuration(startDate, endDate) {
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-            const diffTime = Math.abs(end - start);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            return diffDays;
-        }
-
-        function renderTable(data) {
-            const tbody = document.getElementById('corpo-tabela');
-            tbody.innerHTML = '';
-
-            data.forEach(item => {
-                const row = createRow(item);
-                tbody.appendChild(row);
-            });
-        }
-
-        function createRow(item) {
-            const row = document.createElement('tr');
-
-            const tarefaCell = createEditableCell(item['Tarefas']);
-            row.appendChild(tarefaCell);
-
-            const idCell = createEditableCell(item['ID']);
-            row.appendChild(idCell);
-
-            const pesoCell = createEditableCell(item['Peso']);
-            row.appendChild(pesoCell);
-
-            const duracaoCell = createEditableCell(item['Duração']);
-            row.appendChild(duracaoCell);
-
-            const inicioPrevistoCell = createEditableDateCell(item['Previsto Início']);
-            row.appendChild(inicioPrevistoCell);
-
-            const terminoPrevistoCell = createEditableDateCell(item['Previsto Término']);
-            row.appendChild(terminoPrevistoCell);
-
-            const progressoPrevistoCell = createEditableCell(item['Progresso Previsto']);
-            row.appendChild(progressoPrevistoCell);
-
-            const progressoRealizadoCell = createEditableCell(item['Progresso Realizado']);
-            row.appendChild(progressoRealizadoCell);
-
-            const inicioRealizadoCell = createEditableDateCell(item['Realizado Início']);
-            row.appendChild(inicioRealizadoCell);
-
-            const terminoRealizadoCell = createEditableDateCell(item['Realizado Término']);
-            row.appendChild(terminoRealizadoCell);
-
-            const dragHandleCell = document.createElement('td');
-            dragHandleCell.classList.add('drag-handle');
-            row.insertBefore(dragHandleCell, row.firstChild);
-
-            return row;
-        }
-
-        function createEditableCell(value) {
-            const cell = document.createElement('td');
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.value = value;
-            input.classList.add('editavel');
-            input.addEventListener('change', () => updateCellValue(input));
-            cell.appendChild(input);
-            return cell;
-        }
-
-        function createEditableDateCell(value) {
-            const cell = document.createElement('td');
-            const input = document.createElement('input');
-            input.type = 'date';
-            input.value = value;
-            input.classList.add('editavel');
-            input.addEventListener('change', () => updateCellValue(input));
-            cell.appendChild(input);
-            return cell;
-        }
-
-        function updateCellValue(input) {
-            const cell = input.parentNode;
-            cell.textContent = input.value;
-        }
-
-        function setupDragAndDrop() {
-            const rows = document.querySelectorAll('tbody tr');
-            let dragSrc = null;
-
-            function handleDragStart(e) {
-                dragSrc = this;
-                e.dataTransfer.effectAllowed = 'move';
-                e.dataTransfer.setData('text/html', this.innerHTML);
-            }
-
-            function handleDragOver(e) {
-                if (e.preventDefault) {
-                    e.preventDefault();
-                }
-                e.dataTransfer.dropEffect = 'move';
-                return false;
-            }
-
-            function handleDragEnter(e) {
-                this.classList.add('over');
-            }
-
-            function handleDragLeave() {
-                this.classList.remove('over');
-            }
-
-            function handleDrop(e) {
-                if (e.stopPropagation) {
-                    e.stopPropagation(); // stops the browser from redirecting.
-                }
-
-                if (dragSrc !== this) {
-                    dragSrc.innerHTML = this.innerHTML;
-                    this.innerHTML = e.dataTransfer.getData('text/html');
-                }
-
-                return false;
-            }
-
-            function handleDragEnd() {
-                rows.forEach(row => row.classList.remove('over'));
-            }
+        // Função para adicionar eventos de arrastar e soltar
+        function enableDragAndDrop() {
+            const rows = document.querySelectorAll('#corpo-tabela tr');
 
             rows.forEach(row => {
-                row.addEventListener('dragstart', handleDragStart);
-                row.addEventListener('dragenter', handleDragEnter);
-                row.addEventListener('dragover', handleDragOver);
-                row.addEventListener('dragleave', handleDragLeave);
-                row.addEventListener('drop', handleDrop);
-                row.addEventListener('dragend', handleDragEnd);
-                row.setAttribute('draggable', 'true');
+                row.draggable = true;
+                row.addEventListener('dragstart', dragStart);
+                row.addEventListener('dragover', dragOver);
+                row.addEventListener('dragenter', dragEnter);
+                row.addEventListener('dragleave', dragLeave);
+                row.addEventListener('drop', drop);
+                row.addEventListener('dragend', dragEnd);
             });
+
+            const dropZone = document.getElementById('drop-zone');
+            dropZone.addEventListener('dragover', dragOver);
+            dropZone.addEventListener('dragenter', dragEnter);
+            dropZone.addEventListener('dragleave', dragLeave);
+            dropZone.addEventListener('drop', drop);
         }
+
+        function dragStart(e) {
+            e.dataTransfer.setData('text/plain', e.target.dataset.id);
+            e.target.classList.add('dragging');
+        }
+
+        function dragOver(e) {
+            e.preventDefault();
+        }
+
+        function dragEnter(e) {
+            e.preventDefault();
+            if (e.target.classList.contains('drop-zone')) {
+                e.target.classList.add('active');
+            }
+        }
+
+        function dragLeave(e) {
+            if (e.target.classList.contains('drop-zone')) {
+                e.target.classList.remove('active');
+            }
+        }
+
+        function drop(e) {
+            e.preventDefault();
+            const dropZone = document.getElementById('drop-zone');
+            dropZone.classList.remove('active');
+
+            const draggedId = e.dataTransfer.getData('text/plain');
+            const draggedRow = document.querySelector(`[data-id="${draggedId}"]`);
+            const dropTarget = e.target.closest('tr');
+
+            if (dropTarget && dropTarget !== draggedRow) {
+                if (dropTarget.classList.contains('tarefa') && !dropTarget.dataset.subtarefa) {
+                    // Adicionar como subtarefa
+                    dropTarget.dataset.subtarefa = 'true';
+                    dropTarget.classList.add('tarefa');
+                    draggedRow.classList.remove('tarefa');
+                } else if (dropTarget.classList.contains('tarefa') && dropTarget.dataset.subtarefa) {
+                    // Adicionar como subsubtarefa
+                    dropTarget.dataset.subsubtarefa = 'true';
+                    dropTarget.classList.add('tarefa');
+                    draggedRow.classList.remove('tarefa');
+                }
+                dropTarget.parentNode.insertBefore(draggedRow, dropTarget.nextSibling);
+            }
+            draggedRow.classList.remove('dragging');
+        }
+
+        function dragEnd(e) {
+            const rows = document.querySelectorAll('#corpo-tabela tr');
+            rows.forEach(row => row.classList.remove('dragging'));
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            enableDragAndDrop();
+        });
     </script>
 </body>
 </html>
