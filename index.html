@@ -148,17 +148,19 @@
 
         function parseCSV(csv) {
             const lines = csv.split('\n');
-            const headers = lines[0].split(',').map(header => header.trim());
+            const headers = lines[0].split(';').map(header => header.trim());
 
             const data = [];
             for (let i = 1; i < lines.length; i++) {
-                const values = lines[i].split(',').map(value => value.trim());
+                const values = lines[i].split(';').map(value => value.trim());
                 const entry = {};
                 for (let j = 0; j < headers.length; j++) {
                     if (headers[j].toLowerCase().includes('início') || headers[j].toLowerCase().includes('término')) {
                         entry[headers[j]] = convertToISODate(values[j]);
+                    } else if (headers[j].toLowerCase().includes('duração')) {
+                        entry[headers[j]] = calculateDuration(values[headers.indexOf('Previsto Início')], values[headers.indexOf('Previsto Término')]);
                     } else if (headers[j].toLowerCase().includes('peso')) {
-                        // Deixe vazio para ser calculado dinamicamente
+                        entry[headers[j]] = `${values[j]}%`;
                     } else {
                         entry[headers[j]] = values[j];
                     }
@@ -195,6 +197,7 @@
             data.forEach(item => {
                 const row = document.createElement('tr');
 
+                // Crear celdas para cada columna
                 const tarefaCell = document.createElement('td');
                 tarefaCell.textContent = item['Tarefas'];
                 row.appendChild(tarefaCell);
@@ -203,39 +206,25 @@
                 idCell.textContent = item['ID'];
                 row.appendChild(idCell);
 
-                // Calcular duração em dias entre Previsto Início e Previsto Término
-                const inicioPrevisto = item['Previsto Início'];
-                const terminoPrevisto = item['Previsto Término'];
-                const duracaoPrevista = calculateDuration(inicioPrevisto, terminoPrevisto);
-
                 const pesoCell = document.createElement('td');
-                pesoCell.textContent = duracaoPrevista.toString(); // Exibe a duração como número inteiro
+                pesoCell.textContent = item['Peso'];
                 row.appendChild(pesoCell);
 
+                // Crear celda para la duración (editable)
                 const duracaoCell = document.createElement('td');
-                duracaoCell.textContent = item['Duração'];
+                duracaoCell.classList.add('editavel');
+                duracaoCell.dataset.label = 'Duração'; // Marcar como celda de duración
+                duracaoCell.textContent = calculateDuration(item['Previsto Início'], item['Previsto Término']); // Calcular y asignar duración inicial
                 row.appendChild(duracaoCell);
 
-                const inicioPrevistoCell = document.createElement('td');
-                inicioPrevistoCell.classList.add('editavel');
-                inicioPrevistoCell.dataset.value = item['Previsto Início'];
-                const inicioPrevistoInput = document.createElement('input');
-                inicioPrevistoInput.type = 'date';
-                inicioPrevistoInput.value = item['Previsto Início'];
-                inicioPrevistoInput.addEventListener('change', () => updateCellValue(inicioPrevistoInput, row));
-                inicioPrevistoCell.appendChild(inicioPrevistoInput);
+                // Crear celdas para fechas previstas (inicio y término)
+                const inicioPrevistoCell = createEditableDateCell(item['Previsto Início'], 'Previsto Início');
                 row.appendChild(inicioPrevistoCell);
 
-                const terminoPrevistoCell = document.createElement('td');
-                terminoPrevistoCell.classList.add('editavel');
-                terminoPrevistoCell.dataset.value = item['Previsto Término'];
-                const terminoPrevistoInput = document.createElement('input');
-                terminoPrevistoInput.type = 'date';
-                terminoPrevistoInput.value = item['Previsto Término'];
-                terminoPrevistoInput.addEventListener('change', () => updateCellValue(terminoPrevistoInput, row));
-                terminoPrevistoCell.appendChild(terminoPrevistoInput);
+                const terminoPrevistoCell = createEditableDateCell(item['Previsto Término'], 'Previsto Término');
                 row.appendChild(terminoPrevistoCell);
 
+                // Otras celdas (progresso previsto y realizado)
                 const progressoPrevistoCell = document.createElement('td');
                 progressoPrevistoCell.textContent = item['Progresso Previsto'];
                 row.appendChild(progressoPrevistoCell);
@@ -244,43 +233,44 @@
                 progressoRealizadoCell.textContent = item['Progresso Realizado'];
                 row.appendChild(progressoRealizadoCell);
 
-                const inicioRealizadoCell = document.createElement('td');
-                inicioRealizadoCell.classList.add('editavel');
-                inicioRealizadoCell.dataset.value = item['Realizado Início'];
-                const inicioRealizadoInput = document.createElement('input');
-                inicioRealizadoInput.type = 'date';
-                inicioRealizadoInput.value = item['Realizado Início'];
-                inicioRealizadoInput.addEventListener('change', () => updateCellValue(inicioRealizadoInput, row));
-                inicioRealizadoCell.appendChild(inicioRealizadoInput);
+                // Crear celdas para fechas realizadas (inicio y término)
+                const inicioRealizadoCell = createEditableDateCell(item['Realizado Início'], 'Realizado Início');
                 row.appendChild(inicioRealizadoCell);
 
-                const terminoRealizadoCell = document.createElement('td');
-                terminoRealizadoCell.classList.add('editavel');
-                terminoRealizadoCell.dataset.value = item['Realizado Término'];
-                const terminoRealizadoInput = document.createElement('input');
-                terminoRealizadoInput.type = 'date';
-                terminoRealizadoInput.value = item['Realizado Término'];
-                terminoRealizadoInput.addEventListener('change', () => updateCellValue(terminoRealizadoInput, row));
-                terminoRealizadoCell.appendChild(terminoRealizadoInput);
+                const terminoRealizadoCell = createEditableDateCell(item['Realizado Término'], 'Realizado Término');
                 row.appendChild(terminoRealizadoCell);
 
+                // Agregar fila a la tabla
                 tbody.appendChild(row);
             });
         }
 
-        function updateCellValue(input, row) {
+        function createEditableDateCell(value, label) {
+            const cell = document.createElement('td');
+            cell.classList.add('editavel');
+            cell.dataset.label = label; // Etiqueta para identificar el tipo de fecha
+            const input = document.createElement('input');
+            input.type = 'date';
+            input.value = value;
+            input.addEventListener('change', () => updateCellValue(input));
+            cell.appendChild(input);
+            return cell;
+        }
+
+        function updateCellValue(input) {
             const cell = input.parentElement;
             cell.dataset.value = input.value;
 
-            const inicioPrevisto = row.querySelector('[data-value="Previsto Início"]').value;
-            const terminoPrevisto = row.querySelector('[data-value="Previsto Término"]').value;
+            // Obtener la fila (tr) correspondiente
+            const row = cell.parentElement;
 
-            // Calcular a duração em dias entre as datas de início e término previstas
-            const duracaoPrevista = calculateDuration(inicioPrevisto, terminoPrevisto);
+            // Obtener las fechas actualizadas
+            const previstoInicio = row.querySelector('.editavel[data-label="Previsto Início"] input').value;
+            const previstoTermino = row.querySelector('.editavel[data-label="Previsto Término"] input').value;
 
-            // Atualizar o valor da célula "Peso" com a nova duração calculada
-            const pesoCell = row.querySelector('td:nth-child(3)');
-            pesoCell.textContent = duracaoPrevista.toString();
+            // Calcular la nueva duración
+            const duracaoCell = row.querySelector('.editavel[data-label="Duração"]');
+            duracaoCell.textContent = calculateDuration(previstoInicio, previstoTermino); // Actualizar el contenido de la celda
         }
     </script>
 </body>
