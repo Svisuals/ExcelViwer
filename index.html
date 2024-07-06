@@ -28,7 +28,7 @@
     .iframe-container {
         position: relative;
         overflow: hidden;
-        padding-top: 56.25%; /* proporção de 16:9 (para vídeo) */
+        padding-top: 56.25%; /* proporción de 16:9 (para vídeo) */
     }
 
     iframe {
@@ -56,10 +56,54 @@
     .download-btn:hover {
         background-color: #45a049;
     }
+
+    .login-form {
+        max-width: 300px;
+        margin: 100px auto;
+        padding: 20px;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .login-form h2 {
+        text-align: center;
+    }
+
+    .login-form input[type="text"], .login-form input[type="password"] {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        box-sizing: border-box;
+    }
+
+    .login-form button {
+        width: 100%;
+        padding: 10px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+
+    .login-form button:hover {
+        background-color: #45a049;
+    }
+
+    .hidden {
+        display: none;
+    }
 </style>
 </head>
 <body>
-<div class="container">
+<div class="login-form" id="loginForm">
+    <h2>Iniciar Sesión</h2>
+    <input type="text" id="username" placeholder="Usuario">
+    <input type="password" id="password" placeholder="Contraseña">
+    <button onclick="login()">Ingresar</button>
+</div>
+
+<div class="container hidden" id="content">
     <h1>Página con iFrame de Google Sheets editable y descarga CSV</h1>
     <div class="iframe-container">
         <iframe id="myIframe" src="https://docs.google.com/spreadsheets/d/1Wsr5ZBAqlC9-ZLlBYJ4hjL-p7HgoCgff/edit?usp=sharing&rm=minimal#gid=832209329" frameborder="0" scrolling="auto"></iframe>
@@ -68,26 +112,29 @@
 </div>
 
 <script>
-    function downloadCSV() {
-        // Obtener la URL actual de la hoja de cálculo
-        var sheetUrl = "https://docs.google.com/spreadsheets/d/1Wsr5ZBAqlC9-ZLlBYJ4hjL-p7HgoCgff/edit?usp=sharing&rm=minimal#gid=832209329";
+    function login() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
 
-        // Construir la URL para descargar el CSV
+        if (username === 'ADM' && password === '1234') {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('content').classList.remove('hidden');
+        } else {
+            alert('Usuario o contraseña incorrectos.');
+        }
+    }
+
+    function downloadCSV() {
+        var sheetUrl = "https://docs.google.com/spreadsheets/d/1Wsr5ZBAqlC9-ZLlBYJ4hjL-p7HgoCgff/edit?usp=sharing&rm=minimal#gid=832209329";
         var downloadUrl = sheetUrl.replace("/edit", "/export") + "&format=csv";
 
-        // Crear un elemento <a> temporal para iniciar la descarga
         var link = document.createElement("a");
         link.style.display = "none";
         link.href = downloadUrl;
         link.download = "datos.csv";
 
-        // Agregar el elemento <a> al cuerpo del documento
         document.body.appendChild(link);
-
-        // Simular clic en el enlace para iniciar la descarga
         link.click();
-
-        // Eliminar el elemento <a> del cuerpo del documento
         document.body.removeChild(link);
     }
 </script>
