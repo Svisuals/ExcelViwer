@@ -164,7 +164,7 @@
                     } else if (headers[j].toLowerCase().includes('duração')) {
                         entry[headers[j]] = calculateDuration(values[headers.indexOf('Previsto Início')], values[headers.indexOf('Previsto Término')]);
                     } else if (headers[j].toLowerCase().includes('peso')) {
-                        entry[headers[j]] = `${values[j]}%`;
+                        // Aqui deixamos vazio, pois será calculado dinamicamente
                     } else {
                         entry[headers[j]] = values[j];
                     }
@@ -209,8 +209,13 @@
                 idCell.textContent = item['ID'];
                 row.appendChild(idCell);
 
+                // Calcular duração em dias entre Previsto Início e Previsto Término
+                const inicioPrevisto = item['Previsto Início'];
+                const terminoPrevisto = item['Previsto Término'];
+                const duracaoPrevista = calculateDuration(inicioPrevisto, terminoPrevisto);
+
                 const pesoCell = document.createElement('td');
-                pesoCell.textContent = item['Peso'];
+                pesoCell.textContent = duracaoPrevista.toString(); // Exibe a duração como número inteiro
                 row.appendChild(pesoCell);
 
                 const duracaoCell = document.createElement('td');
@@ -276,16 +281,13 @@
             const row = input.closest('tr');
             const inicioPrevisto = row.querySelector('[data-value="Previsto Início"]').value;
             const terminoPrevisto = row.querySelector('[data-value="Previsto Término"]').value;
-            const inicioRealizado = row.querySelector('[data-value="Realizado Início"]').value;
-            const terminoRealizado = row.querySelector('[data-value="Realizado Término"]').value;
 
-            if (input === row.querySelector('[data-value="Realizado Início"]') || input === row.querySelector('[data-value="Realizado Término"]')) {
-                const duracaoCell = row.querySelector('[data-value="Duração"]');
-                duracaoCell.textContent = calculateDuration(inicioRealizado, terminoRealizado);
-            } else {
-                const duracaoCell = row.querySelector('[data-value="Duração"]');
-                duracaoCell.textContent = calculateDuration(inicioPrevisto, terminoPrevisto);
-            }
+            // Calcular a duração em dias entre as datas de início e término
+            const duracaoPrevista = calculateDuration(inicioPrevisto, terminoPrevisto);
+
+            // Atualizar o valor da célula "Peso" com a nova duração calculada
+            const pesoCell = row.querySelector('[data-value="Peso"]');
+            pesoCell.textContent = duracaoPrevista.toString();
         }
     </script>
 </body>
