@@ -170,11 +170,11 @@
         }
 
         function convertToISODate(dateString) {
-            const parts = dateString.split('/');
+            const parts = dateString.split('-');
             if (parts.length === 3) {
-                const day = parts[0].padStart(2, '0');
-                const month = parts[1].padStart(2, '0');
-                const year = parts[2];
+                const year = parts[0];
+                const month = parts[1];
+                const day = parts[2];
                 return `${year}-${month}-${day}`;
             }
             return dateString;
@@ -272,15 +272,40 @@
             const cell = input.parentElement;
             cell.dataset.value = input.value;
 
-            const inicioPrevisto = row.querySelector('[data-value="Previsto Início"]').value;
-            const terminoPrevisto = row.querySelector('[data-value="Previsto Término"]').value;
+            const inicioPrevisto = row.querySelector('[data-value="Previsto Início"]');
+            const terminoPrevisto = row.querySelector('[data-value="Previsto Término"]');
+            const inicioRealizado = row.querySelector('[data-value="Realizado Início"]');
+            const terminoRealizado = row.querySelector('[data-value="Realizado Término"]');
 
-            // Calcular a duração em dias entre as datas de início e término previstas
-            const duracaoPrevista = calculateDuration(inicioPrevisto, terminoPrevisto);
+            // Aqui você pode adicionar lógica para salvar os dados atualizados, por exemplo:
+            // const updatedData = {
+            //     'Tarefas': row.cells[0].textContent,
+            //     'ID': row.cells[1].textContent,
+            //     'Previsto Início': inicioPrevisto.dataset.value,
+            //     'Previsto Término': terminoPrevisto.dataset.value,
+            //     'Realizado Início': inicioRealizado.dataset.value,
+            //     'Realizado Término': terminoRealizado.dataset.value,
+            //     'Duração': row.cells[2].textContent,
+            //     'Progresso Previsto': row.cells[6].textContent,
+            //     'Progresso Realizado': row.cells[7].textContent
+            // };
 
-            // Atualizar o valor da célula "Peso" com a nova duração calculada
-            const pesoCell = row.querySelector('td:nth-child(3)');
-            pesoCell.textContent = duracaoPrevista.toString();
+            // Exemplo de como enviar os dados atualizados para uma API ou serviço de backend
+            // fetch('url_para_salvar_dados', {
+            //     method: 'POST',
+            //     headers: {
+            //         'Content-Type': 'application/json'
+            //     },
+            //     body: JSON.stringify(updatedData)
+            // }).then(response => {
+            //     if (response.ok) {
+            //         console.log('Dados atualizados com sucesso!');
+            //     } else {
+            //         console.error('Erro ao atualizar os dados.');
+            //     }
+            // }).catch(error => {
+            //     console.error('Erro na requisição:', error);
+            // });
         }
     </script>
 </body>
