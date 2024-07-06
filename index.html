@@ -31,7 +31,7 @@
     }
     .toggle-icon {
         cursor: pointer;
-        margin-left: 4px;
+        margin-right: 4px;
     }
 </style>
 </head>
@@ -41,35 +41,23 @@
     <thead>
         <tr>
             <th>Tarefa</th>
-            <th>Ações</th>
         </tr>
     </thead>
     <tbody>
         <tr data-id="1">
-            <td><span class="handle">&#9776;</span>Tarefa 1</td>
-            <td>
-                <span class="toggle-icon"><i class="fas fa-chevron-down"></i></span>
-                <button class="toggle-child">Mostrar Filhas</button>
-            </td>
+            <td><span class="handle">&#9776;</span> Tarefa 1 <span class="toggle-icon"><i class="fas fa-chevron-down"></i></span></td>
         </tr>
         <tr class="child-row" data-parent="1">
             <td style="padding-left: 20px;">Tarefa 1.1</td>
-            <td><button class="toggle-child">Mostrar Filhas</button></td>
         </tr>
         <tr class="child-row" data-parent="1">
             <td style="padding-left: 20px;">Tarefa 1.2</td>
-            <td><button class="toggle-child">Mostrar Filhas</button></td>
         </tr>
         <tr data-id="2">
-            <td><span class="handle">&#9776;</span>Tarefa 2</td>
-            <td>
-                <span class="toggle-icon"><i class="fas fa-chevron-down"></i></span>
-                <button class="toggle-child">Mostrar Filhas</button>
-            </td>
+            <td><span class="handle">&#9776;</span> Tarefa 2 <span class="toggle-icon"><i class="fas fa-chevron-down"></i></span></td>
         </tr>
         <tr class="child-row" data-parent="2">
             <td style="padding-left: 20px;">Tarefa 2.1</td>
-            <td><button class="toggle-child">Mostrar Filhas</button></td>
         </tr>
     </tbody>
 </table>
@@ -89,24 +77,21 @@
             }
         }).disableSelection();
 
-        // Botão para mostrar/esconder filas filhas
-        $(".toggle-child").click(function() {
+        // Evento de clique na seta para expandir/esconder filas filhas
+        $(".toggle-icon").click(function() {
             var parentRow = $(this).closest("tr");
             var parentId = parentRow.data("id");
             var childRows = $(".child-row[data-parent='" + parentId + "']");
             childRows.toggle();
-            $(this).text(function(i, text){
-                return text === "Mostrar Filhas" ? "Esconder Filhas" : "Mostrar Filhas";
-            });
-            updateToggleIcon(parentRow.find(".toggle-icon"));
+            updateToggleIcon($(this).find("i"));
         });
 
         // Atualiza o ícone de seta para cima/baixo com base no estado de visibilidade
         function updateToggleIcon(icon) {
-            if (icon.find("i").hasClass("fa-chevron-down")) {
-                icon.html("<i class='fas fa-chevron-up'></i>");
+            if (icon.hasClass("fa-chevron-down")) {
+                icon.removeClass("fa-chevron-down").addClass("fa-chevron-up");
             } else {
-                icon.html("<i class='fas fa-chevron-down'></i>");
+                icon.removeClass("fa-chevron-up").addClass("fa-chevron-down");
             }
         }
 
