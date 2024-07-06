@@ -47,13 +47,12 @@
         }
 
         .editavel input {
-            width: calc(100% - 16px);
+            width: 100%;
             box-sizing: border-box;
             background-color: #333;
             color: #fff;
             border: none;
             text-align: center;
-            padding: 4px;
         }
 
         .editavel input[type="date"] {
@@ -100,6 +99,16 @@
         .input-wrapper input {
             margin-left: 10px;
         }
+
+        .drag-handle {
+            cursor: move;
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background-color: #aaa;
+            margin-right: 5px;
+            border-radius: 50%;
+        }
     </style>
 </head>
 <body>
@@ -118,7 +127,6 @@
                 <th rowspan="2">ID</th>
                 <th colspan="4">Previsto</th>
                 <th colspan="3">Realizado</th>
-                <th rowspan="2">Tarefa Pai</th> <!-- Nova coluna para Tarefa Pai -->
             </tr>
             <tr>
                 <th>Peso (%)</th>
@@ -137,8 +145,6 @@
     </table>
 
     <script>
-        let idCount = 1; // Contador para o ID das tarefas
-
         document.getElementById('input-csv').addEventListener('change', handleFile);
 
         function handleFile(e) {
@@ -149,6 +155,7 @@
                 const csv = event.target.result;
                 const data = parseCSV(csv);
                 renderTable(data);
+                setupDragAndDrop();
             };
 
             reader.readAsText(file);
@@ -203,90 +210,70 @@
             tbody.innerHTML = '';
 
             data.forEach(item => {
-                const row = document.createElement('tr');
-
-                const tarefaCell = createEditableCell('Tarefas', item['Tarefas']);
-                row.appendChild(tarefaCell);
-
-                const idCell = document.createElement('td');
-                idCell.textContent = idCount++; // Atribui o ID correlativo
-                row.appendChild(idCell);
-
-                const pesoCell = createEditableCell('Peso (%)', item['Peso']);
-                row.appendChild(pesoCell);
-
-                const duracaoCell = document.createElement('td');
-                duracaoCell.textContent = item['Duração'];
-                row.appendChild(duracaoCell);
-
-                const inicioPrevistoCell = createEditableDateCell('Previsto Início', item['Previsto Início']);
-                row.appendChild(inicioPrevistoCell);
-
-                const terminoPrevistoCell = createEditableDateCell('Previsto Término', item['Previsto Término']);
-                row.appendChild(terminoPrevistoCell);
-
-                const progressoPrevistoCell = document.createElement('td');
-                progressoPrevistoCell.textContent = item['Progresso Previsto'];
-                row.appendChild(progressoPrevistoCell);
-
-                const progressoRealizadoCell = document.createElement('td');
-                progressoRealizadoCell.textContent = item['Progresso Realizado'];
-                row.appendChild(progressoRealizadoCell);
-
-                const inicioRealizadoCell = createEditableDateCell('Realizado Início', item['Realizado Início']);
-                row.appendChild(inicioRealizadoCell);
-
-                const terminoRealizadoCell = createEditableDateCell('Realizado Término', item['Realizado Término']);
-                row.appendChild(terminoRealizadoCell);
-
-                const tarefaPaiCell = createParentTaskSelectCell(); // Função para criar a seleção de tarefa pai
-                row.appendChild(tarefaPaiCell);
-
+                const row = createRow(item);
                 tbody.appendChild(row);
             });
         }
 
-        function createEditableCell(headerName, value) {
+        function createRow(item) {
+            const row = document.createElement('tr');
+
+            const tarefaCell = createEditableCell(item['Tarefas']);
+            row.appendChild(tarefaCell);
+
+            const idCell = createEditableCell(item['ID']);
+            row.appendChild(idCell);
+
+            const pesoCell = createEditableCell(item['Peso']);
+            row.appendChild(pesoCell);
+
+            const duracaoCell = createEditableCell(item['Duração']);
+            row.appendChild(duracaoCell);
+
+            const inicioPrevistoCell = createEditableDateCell(item['Previsto Início']);
+            row.appendChild(inicioPrevistoCell);
+
+            const terminoPrevistoCell = createEditableDateCell(item['Previsto Término']);
+            row.appendChild(terminoPrevistoCell);
+
+            const progressoPrevistoCell = createEditableCell(item['Progresso Previsto']);
+            row.appendChild(progressoPrevistoCell);
+
+            const progressoRealizadoCell = createEditableCell(item['Progresso Realizado']);
+            row.appendChild(progressoRealizadoCell);
+
+            const inicioRealizadoCell = createEditableDateCell(item['Realizado Início']);
+            row.appendChild(inicioRealizadoCell);
+
+            const terminoRealizadoCell = createEditableDateCell(item['Realizado Término']);
+            row.appendChild(terminoRealizadoCell);
+
+            const dragHandleCell = document.createElement('td');
+            dragHandleCell.classList.add('drag-handle');
+            row.insertBefore(dragHandleCell, row.firstChild);
+
+            return row;
+        }
+
+        function createEditableCell(value) {
             const cell = document.createElement('td');
             const input = document.createElement('input');
             input.type = 'text';
             input.value = value;
+            input.classList.add('editavel');
             input.addEventListener('change', () => updateCellValue(input));
             cell.appendChild(input);
             return cell;
         }
 
-        function createEditableDateCell(headerName, value) {
+        function createEditableDateCell(value) {
             const cell = document.createElement('td');
-            cell.classList.add('editavel');
             const input = document.createElement('input');
             input.type = 'date';
             input.value = value;
+            input.classList.add('editavel');
             input.addEventListener('change', () => updateCellValue(input));
             cell.appendChild(input);
-            return cell;
-        }
-
-        function createParentTaskSelectCell() {
-            const cell = document.createElement('td');
-            const select = document.createElement('select');
-            const option = document.createElement('option');
-            option.textContent = 'Nenhuma';
-            option.value = '';
-            select.appendChild(option); // Opção para nenhuma tarefa pai
-
-            // Adicionar opções de tarefas existentes como tarefa pai
-            const rows = document.querySelectorAll('#corpo-tabela tr');
-            rows.forEach(row => {
-                const tarefa = row.querySelector('td:first-child').textContent;
-                const option = document.createElement('option');
-                option.textContent = tarefa;
-                option.value = tarefa;
-                select.appendChild(option);
-            });
-
-            select.addEventListener('change', () => updateParentTask(select));
-            cell.appendChild(select);
             return cell;
         }
 
@@ -295,12 +282,58 @@
             cell.textContent = input.value;
         }
 
-        function updateParentTask(select) {
-            // Atualizar a tarefa pai para a linha correspondente
-            const cell = select.parentNode;
-            const row = cell.parentNode;
-            const tarefaPai = select.value;
-            row.setAttribute('data-tarefa-pai', tarefaPai);
+        function setupDragAndDrop() {
+            const rows = document.querySelectorAll('tbody tr');
+            let dragSrc = null;
+
+            function handleDragStart(e) {
+                dragSrc = this;
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/html', this.innerHTML);
+            }
+
+            function handleDragOver(e) {
+                if (e.preventDefault) {
+                    e.preventDefault();
+                }
+                e.dataTransfer.dropEffect = 'move';
+                return false;
+            }
+
+            function handleDragEnter(e) {
+                this.classList.add('over');
+            }
+
+            function handleDragLeave() {
+                this.classList.remove('over');
+            }
+
+            function handleDrop(e) {
+                if (e.stopPropagation) {
+                    e.stopPropagation(); // stops the browser from redirecting.
+                }
+
+                if (dragSrc !== this) {
+                    dragSrc.innerHTML = this.innerHTML;
+                    this.innerHTML = e.dataTransfer.getData('text/html');
+                }
+
+                return false;
+            }
+
+            function handleDragEnd() {
+                rows.forEach(row => row.classList.remove('over'));
+            }
+
+            rows.forEach(row => {
+                row.addEventListener('dragstart', handleDragStart);
+                row.addEventListener('dragenter', handleDragEnter);
+                row.addEventListener('dragover', handleDragOver);
+                row.addEventListener('dragleave', handleDragLeave);
+                row.addEventListener('drop', handleDrop);
+                row.addEventListener('dragend', handleDragEnd);
+                row.setAttribute('draggable', 'true');
+            });
         }
     </script>
 </body>
