@@ -96,18 +96,8 @@
             margin-left: 10px;
         }
 
-        .drop-zone {
-            border: 2px dashed #ccc;
-            padding: 10px;
-            margin-bottom: 10px;
-            cursor: pointer;
-        }
-
-        .drop-zone.active {
-            border-color: #6c6;
-        }
-
-        .escondido {
+        /* Estilo para linhas escondidas */
+        .hidden {
             display: none;
         }
     </style>
@@ -115,10 +105,12 @@
 <body>
     <h1>Acompanhamento de Atividades de Obra</h1>
 
-    <!-- Drop zone para receber as linhas arrastadas -->
-    <div id="drop-zone" class="drop-zone">Arraste e solte as linhas aqui para criar uma estrutura de árvore.</div>
+    <!-- Input para selecionar o arquivo CSV -->
+    <div class="input-wrapper">
+        <label for="input-csv">Selecione o arquivo CSV:</label>
+        <input type="file" id="input-csv" accept=".csv">
+    </div>
 
-    <!-- Tabela de atividades -->
     <table id="tabela-atividades">
         <thead>
             <tr>
@@ -140,144 +132,197 @@
         </thead>
         <tbody id="corpo-tabela">
             <!-- Aqui serão inseridas as linhas de dados -->
-            <tr data-id="1">
-                <td class="tarefa">Tarefa Principal</td>
-                <td>1</td>
-                <td>50%</td>
-                <td>10</td>
-                <td>2024-07-10</td>
-                <td>2024-07-20</td>
-                <td>50%</td>
-                <td>50%</td>
-                <td>2024-07-11</td>
-                <td>2024-07-15</td>
-            </tr>
-            <tr data-id="2">
-                <td class="tarefa" data-subtarefa="true">Subtarefa 1</td>
-                <td>2</td>
-                <td>30%</td>
-                <td>5</td>
-                <td>2024-07-12</td>
-                <td>2024-07-16</td>
-                <td>20%</td>
-                <td>20%</td>
-                <td>2024-07-12</td>
-                <td>2024-07-14</td>
-            </tr>
-            <tr data-id="3">
-                <td class="tarefa" data-subtarefa="true">Subtarefa 2</td>
-                <td>3</td>
-                <td>20%</td>
-                <td>3</td>
-                <td>2024-07-15</td>
-                <td>2024-07-18</td>
-                <td>30%</td>
-                <td>10%</td>
-                <td>2024-07-16</td>
-                <td>2024-07-17</td>
-            </tr>
         </tbody>
     </table>
 
     <script>
-        // Função para adicionar eventos de arrastar e soltar
-        function enableDragAndDrop() {
-            const rows = document.querySelectorAll('#corpo-tabela tr');
+        document.getElementById('input-csv').addEventListener('change', handleFile);
 
-            rows.forEach(row => {
-                row.draggable = true;
-                row.addEventListener('dragstart', dragStart);
-                row.addEventListener('dragover', dragOver);
-                row.addEventListener('dragenter', dragEnter);
-                row.addEventListener('dragleave', dragLeave);
-                row.addEventListener('drop', drop);
-                row.addEventListener('dragend', dragEnd);
+        function handleFile(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
 
-                // Esconde filhas por padrão
-                if (row.classList.contains('tarefa')) {
-                    const subRows = document.querySelectorAll(`[data-id^="${row.dataset.id}-"]`);
-                    subRows.forEach(subRow => {
-                        subRow.classList.add('escondido');
-                    });
-                }
-            });
+            reader.onload = function(event) {
+                const csv = event.target.result;
+                const data = parseCSV(csv);
+                renderTable(data);
+            };
 
-            const dropZone = document.getElementById('drop-zone');
-            dropZone.addEventListener('dragover', dragOver);
-            dropZone.addEventListener('dragenter', dragEnter);
-            dropZone.addEventListener('dragleave', dragLeave);
-            dropZone.addEventListener('drop', drop);
+            reader.readAsText(file);
         }
 
+        function parseCSV(csv) {
+            const lines = csv.split('\n');
+            const headers = lines[0].split(';').map(header => header.trim());
+
+            const data = [];
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(';').map(value => value.trim());
+                const entry = {};
+                for (let j = 0; j < headers.length; j++) {
+                    if (headers[j].toLowerCase().includes('início') || headers[j].toLowerCase().includes('término')) {
+                        entry[headers[j]] = convertToISODate(values[j]);
+                    } else if (headers[j].toLowerCase().includes('duração')) {
+                        entry[headers[j]] = calculateDuration(values[headers.indexOf('Previsto Início')], values[headers.indexOf('Previsto Término')]);
+                    } else if (headers[j].toLowerCase().includes('peso')) {
+                        entry[headers[j]] = `${values[j]}%`;
+                    } else {
+                        entry[headers[j]] = values[j];
+                    }
+                }
+                data.push(entry);
+            }
+
+            return data;
+        }
+
+        function convertToISODate(dateString) {
+            const parts = dateString.split('/');
+            if (parts.length === 3) {
+                const day = parts[0].padStart(2, '0');
+                const month = parts[1].padStart(2, '0');
+                const year = parts[2];
+                return `${year}-${month}-${day}`;
+            }
+            return dateString;
+        }
+
+        function calculateDuration(startDate, endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const diffTime = Math.abs(end - start);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays;
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('corpo-tabela');
+            tbody.innerHTML = '';
+
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.draggable = true; // Tornar a linha arrastável
+
+                // Atributo para identificar a linha como pai ou filha
+                row.dataset.parentId = ''; 
+
+                // Criar células para cada coluna
+                const tarefaCell = document.createElement('td');
+                tarefaCell.textContent = item['Tarefas'];
+                tarefaCell.classList.add('tarefa');
+                row.appendChild(tarefaCell);
+
+                const idCell = document.createElement('td');
+                idCell.textContent = item['ID'];
+                row.appendChild(idCell);
+
+                const pesoCell = document.createElement('td');
+                pesoCell.textContent = item['Peso'];
+                row.appendChild(pesoCell);
+
+                // Criar célula para duração (editável)
+                const duracaoCell = document.createElement('td');
+                duracaoCell.classList.add('editavel');
+                duracaoCell.dataset.label = 'Duração'; // Marcar como célula de duração
+                duracaoCell.textContent = calculateDuration(item['Previsto Início'], item['Previsto Término']); // Calcular e atribuir a duração inicial
+                row.appendChild(duracaoCell);
+
+                // Criar células para datas previstas (início e término)
+                const inicioPrevistoCell = createEditableDateCell(item['Previsto Início'], 'Previsto Início');
+                row.appendChild(inicioPrevistoCell);
+
+                const terminoPrevistoCell = createEditableDateCell(item['Previsto Término'], 'Previsto Término');
+                row.appendChild(terminoPrevistoCell);
+
+                // Outras células (progresso previsto e realizado)
+                const progressoPrevistoCell = document.createElement('td');
+                progressoPrevistoCell.textContent = item['Progresso Previsto'];
+                row.appendChild(progressoPrevistoCell);
+
+                const progressoRealizadoCell = document.createElement('td');
+                progressoRealizadoCell.textContent = item['Progresso Realizado'];
+                row.appendChild(progressoRealizadoCell);
+
+                // Criar células para datas realizadas (início e término)
+                const inicioRealizadoCell = createEditableDateCell(item['Realizado Início'], 'Realizado Início');
+                row.appendChild(inicioRealizadoCell);
+
+                const terminoRealizadoCell = createEditableDateCell(item['Realizado Término'], 'Realizado Término');
+                row.appendChild(terminoRealizadoCell);
+
+                // Evento para lidar com o arrastar e soltar
+                row.addEventListener('dragstart', dragStart);
+                row.addEventListener('dragover', dragOver);
+                row.addEventListener('drop', drop);
+
+                // Adicionar linha à tabela
+                tbody.appendChild(row);
+            });
+        }
+
+        function createEditableDateCell(value, label) {
+            const cell = document.createElement('td');
+            cell.classList.add('editavel');
+            cell.dataset.label = label; // Rótulo para identificar o tipo de data
+            const input = document.createElement('input');
+            input.type = 'date';
+            input.value = value;
+            input.addEventListener('change', () => updateCellValue(input));
+            cell.appendChild(input);
+            return cell;
+        }
+
+        function updateCellValue(input) {
+            const cell = input.parentElement;
+            cell.dataset.value = input.value;
+
+            // Obter a linha (tr) correspondente
+            const row = cell.parentElement;
+
+            // Atualizar a duração quando as datas previstas são alteradas
+            if (cell.dataset.label === 'Previsto Início' || cell.dataset.label === 'Previsto Término') {
+                const previstoInicio = row.querySelector('.editavel[data-label="Previsto Início"] input').value;
+                const previstoTermino = row.querySelector('.editavel[data-label="Previsto Término"] input').value;
+                const duracaoCell = row.querySelector('.editavel[data-label="Duração"]');
+                duracaoCell.textContent = calculateDuration(previstoInicio, previstoTermino); // Atualizar o conteúdo da célula
+            }
+        }
+
+        function toggleChildren(parentCell) {
+            const parentId = parentCell.dataset.id;
+            const siblingRows = parentCell.parentElement.parentElement.querySelectorAll(`tr[data-parent-id="${parentId}"]`);
+
+            siblingRows.forEach(row => {
+                row.classList.toggle('hidden');
+            });
+        }
+
+        // Funções para arrastar e soltar
+        let draggedRow;
+
         function dragStart(e) {
-            e.dataTransfer.setData('text/plain', e.target.dataset.id);
-            e.target.classList.add('dragging');
+            draggedRow = this;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', this.outerHTML);
         }
 
         function dragOver(e) {
-            e.preventDefault();
-        }
-
-        function dragEnter(e) {
-            e.preventDefault();
-            if (e.target.classList.contains('drop-zone')) {
-                e.target.classList.add('active');
+            if (e.preventDefault) {
+                e.preventDefault();
             }
-        }
-
-        function dragLeave(e) {
-            if (e.target.classList.contains('drop-zone')) {
-                e.target.classList.remove('active');
-            }
+            e.dataTransfer.dropEffect = 'move';
+            return false;
         }
 
         function drop(e) {
-            e.preventDefault();
-            const dropZone = document.getElementById('drop-zone');
-            dropZone.classList.remove('active');
-
-            const draggedId = e.dataTransfer.getData('text/plain');
-            const draggedRow = document.querySelector(`[data-id="${draggedId}"]`);
-            const dropTarget = e.target.closest('tr');
-
-            if (dropTarget && dropTarget !== draggedRow) {
-                if (dropTarget.classList.contains('tarefa') && !dropTarget.dataset.subtarefa) {
-                    // Adicionar como subtarefa
-                    dropTarget.dataset.subtarefa = 'true';
-                    dropTarget.classList.add('tarefa');
-                    draggedRow.classList.remove('tarefa');
-                } else if (dropTarget.classList.contains('tarefa') && dropTarget.dataset.subtarefa) {
-                    // Adicionar como subsubtarefa
-                    dropTarget.dataset.subsubtarefa = 'true';
-                    dropTarget.classList.add('tarefa');
-                    draggedRow.classList.remove('tarefa');
-                }
-                dropTarget.parentNode.insertBefore(draggedRow, dropTarget.nextSibling);
+            if (e.stopPropagation) {
+                e.stopPropagation();
             }
-            draggedRow.classList.remove('dragging');
+            if (draggedRow !== this) {
+                this.parentNode.insertBefore(draggedRow, this.nextSibling);
+            }
+            return false;
         }
-
-        function dragEnd(e) {
-            const rows = document.querySelectorAll('#corpo-tabela tr');
-            rows.forEach(row => row.classList.remove('dragging'));
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            enableDragAndDrop();
-
-            // Adiciona o comportamento de esconder/mostrar filhas ao clicar em tarefas
-            const tarefas = document.querySelectorAll('.tarefa');
-            tarefas.forEach(tarefa => {
-                tarefa.addEventListener('click', () => {
-                    const id = tarefa.dataset.id;
-                    const subRows = document.querySelectorAll(`[data-id^="${id}-"]`);
-
-                    subRows.forEach(subRow => {
-                        subRow.classList.toggle('escondido');
-                    });
-                });
-            });
-        });
     </script>
 </body>
 </html>
