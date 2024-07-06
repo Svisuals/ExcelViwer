@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Página con iFrame de Google Sheets editable</title>
+<title>Página con iFrame de Google Sheets editable y descarga CSV</title>
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -39,18 +39,57 @@
         height: 100%;
         border: none;
     }
+
+    .download-btn {
+        display: block;
+        width: 150px;
+        margin: 20px auto;
+        padding: 10px;
+        text-align: center;
+        background-color: #4CAF50;
+        color: white;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+    }
+
+    .download-btn:hover {
+        background-color: #45a049;
+    }
 </style>
 </head>
 <body>
 <div class="container">
-    <h1>Página con iFrame de Google Sheets editable</h1>
+    <h1>Página con iFrame de Google Sheets editable y descarga CSV</h1>
     <div class="iframe-container">
         <iframe id="myIframe" src="https://docs.google.com/spreadsheets/d/1Wsr5ZBAqlC9-ZLlBYJ4hjL-p7HgoCgff/edit?usp=sharing&rm=minimal#gid=832209329" frameborder="0" scrolling="auto"></iframe>
     </div>
+    <a class="download-btn" href="#" onclick="downloadCSV()">Descargar CSV</a>
 </div>
 
 <script>
-    // Aquí podría ir cualquier script adicional que necesites para interactuar con el iframe
+    function downloadCSV() {
+        // Obtener la URL actual de la hoja de cálculo
+        var sheetUrl = "https://docs.google.com/spreadsheets/d/1Wsr5ZBAqlC9-ZLlBYJ4hjL-p7HgoCgff/edit?usp=sharing&rm=minimal#gid=832209329";
+
+        // Construir la URL para descargar el CSV
+        var downloadUrl = sheetUrl.replace("/edit", "/export") + "&format=csv";
+
+        // Crear un elemento <a> temporal para iniciar la descarga
+        var link = document.createElement("a");
+        link.style.display = "none";
+        link.href = downloadUrl;
+        link.download = "datos.csv";
+
+        // Agregar el elemento <a> al cuerpo del documento
+        document.body.appendChild(link);
+
+        // Simular clic en el enlace para iniciar la descarga
+        link.click();
+
+        // Eliminar el elemento <a> del cuerpo del documento
+        document.body.removeChild(link);
+    }
 </script>
 
 </body>
