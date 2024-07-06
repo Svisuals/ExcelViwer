@@ -59,10 +59,6 @@
             -webkit-appearance: none;
         }
 
-        .editavel input[type="number"] {
-            -moz-appearance: textfield;
-        }
-
         .progresso {
             display: flex;
             align-items: center;
@@ -161,10 +157,8 @@
                 for (let j = 0; j < headers.length; j++) {
                     if (headers[j].toLowerCase().includes('início') || headers[j].toLowerCase().includes('término')) {
                         entry[headers[j]] = convertToISODate(values[j]);
-                    } else if (headers[j].toLowerCase().includes('duração')) {
-                        entry[headers[j]] = calculateDuration(values[headers.indexOf('Previsto Início')], values[headers.indexOf('Previsto Término')]);
                     } else if (headers[j].toLowerCase().includes('peso')) {
-                        // Aqui deixamos vazio, pois será calculado dinamicamente
+                        // Deixe vazio para ser calculado dinamicamente
                     } else {
                         entry[headers[j]] = values[j];
                     }
@@ -228,7 +222,7 @@
                 const inicioPrevistoInput = document.createElement('input');
                 inicioPrevistoInput.type = 'date';
                 inicioPrevistoInput.value = item['Previsto Início'];
-                inicioPrevistoInput.addEventListener('change', () => updateCellValue(inicioPrevistoInput));
+                inicioPrevistoInput.addEventListener('change', () => updateCellValue(inicioPrevistoInput, row));
                 inicioPrevistoCell.appendChild(inicioPrevistoInput);
                 row.appendChild(inicioPrevistoCell);
 
@@ -238,7 +232,7 @@
                 const terminoPrevistoInput = document.createElement('input');
                 terminoPrevistoInput.type = 'date';
                 terminoPrevistoInput.value = item['Previsto Término'];
-                terminoPrevistoInput.addEventListener('change', () => updateCellValue(terminoPrevistoInput));
+                terminoPrevistoInput.addEventListener('change', () => updateCellValue(terminoPrevistoInput, row));
                 terminoPrevistoCell.appendChild(terminoPrevistoInput);
                 row.appendChild(terminoPrevistoCell);
 
@@ -256,7 +250,7 @@
                 const inicioRealizadoInput = document.createElement('input');
                 inicioRealizadoInput.type = 'date';
                 inicioRealizadoInput.value = item['Realizado Início'];
-                inicioRealizadoInput.addEventListener('change', () => updateCellValue(inicioRealizadoInput));
+                inicioRealizadoInput.addEventListener('change', () => updateCellValue(inicioRealizadoInput, row));
                 inicioRealizadoCell.appendChild(inicioRealizadoInput);
                 row.appendChild(inicioRealizadoCell);
 
@@ -266,7 +260,7 @@
                 const terminoRealizadoInput = document.createElement('input');
                 terminoRealizadoInput.type = 'date';
                 terminoRealizadoInput.value = item['Realizado Término'];
-                terminoRealizadoInput.addEventListener('change', () => updateCellValue(terminoRealizadoInput));
+                terminoRealizadoInput.addEventListener('change', () => updateCellValue(terminoRealizadoInput, row));
                 terminoRealizadoCell.appendChild(terminoRealizadoInput);
                 row.appendChild(terminoRealizadoCell);
 
@@ -274,11 +268,10 @@
             });
         }
 
-        function updateCellValue(input) {
+        function updateCellValue(input, row) {
             const cell = input.parentElement;
             cell.dataset.value = input.value;
 
-            const row = input.closest('tr');
             const inicioPrevisto = row.querySelector('[data-value="Previsto Início"]').value;
             const terminoPrevisto = row.querySelector('[data-value="Previsto Término"]').value;
 
@@ -286,7 +279,7 @@
             const duracaoPrevista = calculateDuration(inicioPrevisto, terminoPrevisto);
 
             // Atualizar o valor da célula "Peso" com a nova duração calculada
-            const pesoCell = row.querySelector('[data-value="Peso"]');
+            const pesoCell = row.querySelector('td:nth-child(3)');
             pesoCell.textContent = duracaoPrevista.toString();
         }
     </script>
