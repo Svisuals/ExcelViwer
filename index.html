@@ -111,7 +111,9 @@
 
                 headers.forEach((header, index) => {
                     const value = values[index];
-                    if (header.toLowerCase().includes('início') || header.toLowerCase().includes('término')) {
+                    if (header.toLowerCase().includes('início')) {
+                        entry[header] = convertToISODate(value);
+                    } else if (header.toLowerCase().includes('término')) {
                         entry[header] = convertToISODate(value);
                     } else if (header.toLowerCase().includes('duração')) {
                         entry[header] = calculateDuration(values[headers.indexOf('Previsto Início')], values[headers.indexOf('Previsto Término')]);
@@ -158,8 +160,16 @@
                     const cell = document.createElement('td');
                     const input = document.createElement('input');
                     input.type = 'text';
-                    input.value = item[key];
-                    input.addEventListener('input', () => updateCellValue(item, key, input.value));
+
+                    if (key.toLowerCase().includes('início') || key.toLowerCase().includes('término')) {
+                        input.type = 'date';
+                        input.value = item[key];
+                        input.addEventListener('input', () => updateCellValue(item, key, input.value));
+                    } else {
+                        input.value = item[key];
+                        input.addEventListener('input', () => updateCellValue(item, key, input.value));
+                    }
+
                     cell.appendChild(input);
                     row.appendChild(cell);
                 });
