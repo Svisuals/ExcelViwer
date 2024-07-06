@@ -106,6 +106,10 @@
         .drop-zone.active {
             border-color: #6c6;
         }
+
+        .escondido {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -188,6 +192,14 @@
                 row.addEventListener('dragleave', dragLeave);
                 row.addEventListener('drop', drop);
                 row.addEventListener('dragend', dragEnd);
+
+                // Esconde filhas por padrão
+                if (row.classList.contains('tarefa')) {
+                    const subRows = document.querySelectorAll(`[data-id^="${row.dataset.id}-"]`);
+                    subRows.forEach(subRow => {
+                        subRow.classList.add('escondido');
+                    });
+                }
             });
 
             const dropZone = document.getElementById('drop-zone');
@@ -252,6 +264,19 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             enableDragAndDrop();
+
+            // Adiciona o comportamento de esconder/mostrar filhas ao clicar em tarefas
+            const tarefas = document.querySelectorAll('.tarefa');
+            tarefas.forEach(tarefa => {
+                tarefa.addEventListener('click', () => {
+                    const id = tarefa.dataset.id;
+                    const subRows = document.querySelectorAll(`[data-id^="${id}-"]`);
+
+                    subRows.forEach(subRow => {
+                        subRow.classList.toggle('escondido');
+                    });
+                });
+            });
         });
     </script>
 </body>
