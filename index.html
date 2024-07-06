@@ -96,9 +96,12 @@
             margin-left: 10px;
         }
 
-        /* Estilo para linhas escondidas */
         .hidden {
             display: none;
+        }
+
+        .parent {
+            cursor: pointer;
         }
     </style>
 </head>
@@ -201,15 +204,13 @@
 
             data.forEach(item => {
                 const row = document.createElement('tr');
-                row.draggable = true; // Tornar a linha arrastável
-
-                // Atributo para identificar a linha como pai ou filha
-                row.dataset.parentId = ''; 
+                row.draggable = true;
 
                 // Criar células para cada coluna
                 const tarefaCell = document.createElement('td');
                 tarefaCell.textContent = item['Tarefas'];
-                tarefaCell.classList.add('tarefa');
+                tarefaCell.dataset.id = item['ID'];
+                tarefaCell.classList.add('parent');
                 row.appendChild(tarefaCell);
 
                 const idCell = document.createElement('td');
@@ -223,8 +224,8 @@
                 // Criar célula para duração (editável)
                 const duracaoCell = document.createElement('td');
                 duracaoCell.classList.add('editavel');
-                duracaoCell.dataset.label = 'Duração'; // Marcar como célula de duração
-                duracaoCell.textContent = calculateDuration(item['Previsto Início'], item['Previsto Término']); // Calcular e atribuir a duração inicial
+                duracaoCell.dataset.label = 'Duração';
+                duracaoCell.textContent = calculateDuration(item['Previsto Início'], item['Previsto Término']);
                 row.appendChild(duracaoCell);
 
                 // Criar células para datas previstas (início e término)
@@ -250,20 +251,28 @@
                 const terminoRealizadoCell = createEditableDateCell(item['Realizado Término'], 'Realizado Término');
                 row.appendChild(terminoRealizadoCell);
 
-                // Evento para lidar com o arrastar e soltar
+                tbody.appendChild(row);
+            });
+
+            // Adicionar eventos de arrastar e soltar
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach(row => {
                 row.addEventListener('dragstart', dragStart);
                 row.addEventListener('dragover', dragOver);
                 row.addEventListener('drop', drop);
+            });
 
-                // Adicionar linha à tabela
-                tbody.appendChild(row);
+            // Adicionar evento para ocultar filhas ao clicar em pais
+            const parentRows = document.querySelectorAll('.parent');
+            parentRows.forEach(parent => {
+                parent.addEventListener('click', () => toggleChildren(parent));
             });
         }
 
         function createEditableDateCell(value, label) {
             const cell = document.createElement('td');
             cell.classList.add('editavel');
-            cell.dataset.label = label; // Rótulo para identificar o tipo de data
+            cell.dataset.label = label;
             const input = document.createElement('input');
             input.type = 'date';
             input.value = value;
@@ -274,54 +283,54 @@
 
         function updateCellValue(input) {
             const cell = input.parentElement;
-            cell.dataset.value = input.value;
+            cell.textContent = input.value;
+        }
 
-            // Obter a linha (tr) correspondente
-            const row = cell.parentElement;
+        function dragStart(event) {
+            event.dataTransfer.setData('text/plain', event.target.dataset.id);
+        }
 
-            // Atualizar a duração quando as datas previstas são alteradas
-            if (cell.dataset.label === 'Previsto Início' || cell.dataset.label === 'Previsto Término') {
-                const previstoInicio = row.querySelector('.editavel[data-label="Previsto Início"] input').value;
-                const previstoTermino = row.querySelector('.editavel[data-label="Previsto Término"] input').value;
-                const duracaoCell = row.querySelector('.editavel[data-label="Duração"]');
-                duracaoCell.textContent = calculateDuration(previstoInicio, previstoTermino); // Atualizar o conteúdo da célula
+        function dragOver(event) {
+            event.preventDefault();
+        }
+
+        function drop(event) {
+            event.preventDefault();
+            const draggedId = event.dataTransfer.getData('text/plain');
+            const target = event.target.closest('tr');
+
+            if (!target || target === event.currentTarget) {
+                return;
+            }
+
+            // Verificar se o alvo é uma linha pai
+            const isParent = target.classList.contains('parent');
+            const draggedRow = document.querySelector(`[data-id="${draggedId}"]`);
+
+            if (isParent) {
+                // Tornar a linha filha da linha pai
+                target.appendChild(draggedRow);
+                draggedRow.classList.add('child');
+            } else {
+                // Se o alvo não é uma linha pai, encontrar o pai mais próximo
+                const parent = target.closest('.parent');
+                if (parent) {
+                    parent.appendChild(draggedRow);
+                    draggedRow.classList.add('child');
+                }
             }
         }
 
-        function toggleChildren(parentCell) {
-            const parentId = parentCell.dataset.id;
-            const siblingRows = parentCell.parentElement.parentElement.querySelectorAll(`tr[data-parent-id="${parentId}"]`);
-
-            siblingRows.forEach(row => {
-                row.classList.toggle('hidden');
-            });
-        }
-
-        // Funções para arrastar e soltar
-        let draggedRow;
-
-        function dragStart(e) {
-            draggedRow = this;
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/html', this.outerHTML);
-        }
-
-        function dragOver(e) {
-            if (e.preventDefault) {
-                e.preventDefault();
+        function toggleChildren(parentRow) {
+            const children = parentRow.nextElementSibling;
+            if (children && children.classList.contains('child')) {
+                const isHidden = children.classList.toggle('hidden');
+                if (isHidden) {
+                    parentRow.style.fontWeight = 'normal';
+                } else {
+                    parentRow.style.fontWeight = 'bold';
+                }
             }
-            e.dataTransfer.dropEffect = 'move';
-            return false;
-        }
-
-        function drop(e) {
-            if (e.stopPropagation) {
-                e.stopPropagation();
-            }
-            if (draggedRow !== this) {
-                this.parentNode.insertBefore(draggedRow, this.nextSibling);
-            }
-            return false;
         }
     </script>
 </body>
