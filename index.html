@@ -47,16 +47,21 @@
         }
 
         .editavel input {
-            width: 100%;
+            width: calc(100% - 16px);
             box-sizing: border-box;
             background-color: #333;
             color: #fff;
             border: none;
             text-align: center;
+            padding: 4px;
         }
 
         .editavel input[type="date"] {
             -webkit-appearance: none;
+        }
+
+        .editavel input[type="number"] {
+            -moz-appearance: textfield;
         }
 
         .progresso {
@@ -113,6 +118,7 @@
                 <th rowspan="2">ID</th>
                 <th colspan="4">Previsto</th>
                 <th colspan="3">Realizado</th>
+                <th rowspan="2">Tarefa Pai</th> <!-- Nova coluna para Tarefa Pai -->
             </tr>
             <tr>
                 <th>Peso (%)</th>
@@ -131,6 +137,8 @@
     </table>
 
     <script>
+        let idCount = 1; // Contador para o ID das tarefas
+
         document.getElementById('input-csv').addEventListener('change', handleFile);
 
         function handleFile(e) {
@@ -197,34 +205,26 @@
             data.forEach(item => {
                 const row = document.createElement('tr');
 
-                // Crear celdas para cada columna
-                const tarefaCell = document.createElement('td');
-                tarefaCell.textContent = item['Tarefas'];
+                const tarefaCell = createEditableCell('Tarefas', item['Tarefas']);
                 row.appendChild(tarefaCell);
 
                 const idCell = document.createElement('td');
-                idCell.textContent = item['ID'];
+                idCell.textContent = idCount++; // Atribui o ID correlativo
                 row.appendChild(idCell);
 
-                const pesoCell = document.createElement('td');
-                pesoCell.textContent = item['Peso'];
+                const pesoCell = createEditableCell('Peso (%)', item['Peso']);
                 row.appendChild(pesoCell);
 
-                // Crear celda para la duración (editable)
                 const duracaoCell = document.createElement('td');
-                duracaoCell.classList.add('editavel');
-                duracaoCell.dataset.label = 'Duração'; // Marcar como celda de duración
-                duracaoCell.textContent = calculateDuration(item['Previsto Início'], item['Previsto Término']); // Calcular y asignar duración inicial
+                duracaoCell.textContent = item['Duração'];
                 row.appendChild(duracaoCell);
 
-                // Crear celdas para fechas previstas (inicio y término)
-                const inicioPrevistoCell = createEditableDateCell(item['Previsto Início'], 'Previsto Início');
+                const inicioPrevistoCell = createEditableDateCell('Previsto Início', item['Previsto Início']);
                 row.appendChild(inicioPrevistoCell);
 
-                const terminoPrevistoCell = createEditableDateCell(item['Previsto Término'], 'Previsto Término');
+                const terminoPrevistoCell = createEditableDateCell('Previsto Término', item['Previsto Término']);
                 row.appendChild(terminoPrevistoCell);
 
-                // Otras celdas (progresso previsto y realizado)
                 const progressoPrevistoCell = document.createElement('td');
                 progressoPrevistoCell.textContent = item['Progresso Previsto'];
                 row.appendChild(progressoPrevistoCell);
@@ -233,22 +233,32 @@
                 progressoRealizadoCell.textContent = item['Progresso Realizado'];
                 row.appendChild(progressoRealizadoCell);
 
-                // Crear celdas para fechas realizadas (inicio y término)
-                const inicioRealizadoCell = createEditableDateCell(item['Realizado Início'], 'Realizado Início');
+                const inicioRealizadoCell = createEditableDateCell('Realizado Início', item['Realizado Início']);
                 row.appendChild(inicioRealizadoCell);
 
-                const terminoRealizadoCell = createEditableDateCell(item['Realizado Término'], 'Realizado Término');
+                const terminoRealizadoCell = createEditableDateCell('Realizado Término', item['Realizado Término']);
                 row.appendChild(terminoRealizadoCell);
 
-                // Agregar fila a la tabla
+                const tarefaPaiCell = createParentTaskSelectCell(); // Função para criar a seleção de tarefa pai
+                row.appendChild(tarefaPaiCell);
+
                 tbody.appendChild(row);
             });
         }
 
-        function createEditableDateCell(value, label) {
+        function createEditableCell(headerName, value) {
+            const cell = document.createElement('td');
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = value;
+            input.addEventListener('change', () => updateCellValue(input));
+            cell.appendChild(input);
+            return cell;
+        }
+
+        function createEditableDateCell(headerName, value) {
             const cell = document.createElement('td');
             cell.classList.add('editavel');
-            cell.dataset.label = label; // Etiqueta para identificar el tipo de fecha
             const input = document.createElement('input');
             input.type = 'date';
             input.value = value;
@@ -257,20 +267,40 @@
             return cell;
         }
 
+        function createParentTaskSelectCell() {
+            const cell = document.createElement('td');
+            const select = document.createElement('select');
+            const option = document.createElement('option');
+            option.textContent = 'Nenhuma';
+            option.value = '';
+            select.appendChild(option); // Opção para nenhuma tarefa pai
+
+            // Adicionar opções de tarefas existentes como tarefa pai
+            const rows = document.querySelectorAll('#corpo-tabela tr');
+            rows.forEach(row => {
+                const tarefa = row.querySelector('td:first-child').textContent;
+                const option = document.createElement('option');
+                option.textContent = tarefa;
+                option.value = tarefa;
+                select.appendChild(option);
+            });
+
+            select.addEventListener('change', () => updateParentTask(select));
+            cell.appendChild(select);
+            return cell;
+        }
+
         function updateCellValue(input) {
-            const cell = input.parentElement;
-            cell.dataset.value = input.value;
+            const cell = input.parentNode;
+            cell.textContent = input.value;
+        }
 
-            // Obtener la fila (tr) correspondiente
-            const row = cell.parentElement;
-
-            // Obtener las fechas actualizadas
-            const previstoInicio = row.querySelector('.editavel[data-label="Previsto Início"] input').value;
-            const previstoTermino = row.querySelector('.editavel[data-label="Previsto Término"] input').value;
-
-            // Calcular la nueva duración
-            const duracaoCell = row.querySelector('.editavel[data-label="Duração"]');
-            duracaoCell.textContent = calculateDuration(previstoInicio, previstoTermino); // Actualizar el contenido de la celda
+        function updateParentTask(select) {
+            // Atualizar a tarefa pai para a linha correspondente
+            const cell = select.parentNode;
+            const row = cell.parentNode;
+            const tarefaPai = select.value;
+            row.setAttribute('data-tarefa-pai', tarefaPai);
         }
     </script>
 </body>
