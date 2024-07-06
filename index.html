@@ -219,6 +219,7 @@
 
                 const inicioPrevistoCell = document.createElement('td');
                 inicioPrevistoCell.classList.add('editavel');
+                inicioPrevistoCell.dataset.value = item['Previsto Início'];
                 const inicioPrevistoInput = document.createElement('input');
                 inicioPrevistoInput.type = 'date';
                 inicioPrevistoInput.value = item['Previsto Início'];
@@ -228,6 +229,7 @@
 
                 const terminoPrevistoCell = document.createElement('td');
                 terminoPrevistoCell.classList.add('editavel');
+                terminoPrevistoCell.dataset.value = item['Previsto Término'];
                 const terminoPrevistoInput = document.createElement('input');
                 terminoPrevistoInput.type = 'date';
                 terminoPrevistoInput.value = item['Previsto Término'];
@@ -245,6 +247,7 @@
 
                 const inicioRealizadoCell = document.createElement('td');
                 inicioRealizadoCell.classList.add('editavel');
+                inicioRealizadoCell.dataset.value = item['Realizado Início'];
                 const inicioRealizadoInput = document.createElement('input');
                 inicioRealizadoInput.type = 'date';
                 inicioRealizadoInput.value = item['Realizado Início'];
@@ -254,6 +257,7 @@
 
                 const terminoRealizadoCell = document.createElement('td');
                 terminoRealizadoCell.classList.add('editavel');
+                terminoRealizadoCell.dataset.value = item['Realizado Término'];
                 const terminoRealizadoInput = document.createElement('input');
                 terminoRealizadoInput.type = 'date';
                 terminoRealizadoInput.value = item['Realizado Término'];
@@ -268,6 +272,20 @@
         function updateCellValue(input) {
             const cell = input.parentElement;
             cell.dataset.value = input.value;
+
+            const row = input.closest('tr');
+            const inicioPrevisto = row.querySelector('[data-value="Previsto Início"]').value;
+            const terminoPrevisto = row.querySelector('[data-value="Previsto Término"]').value;
+            const inicioRealizado = row.querySelector('[data-value="Realizado Início"]').value;
+            const terminoRealizado = row.querySelector('[data-value="Realizado Término"]').value;
+
+            if (input === row.querySelector('[data-value="Realizado Início"]') || input === row.querySelector('[data-value="Realizado Término"]')) {
+                const duracaoCell = row.querySelector('[data-value="Duração"]');
+                duracaoCell.textContent = calculateDuration(inicioRealizado, terminoRealizado);
+            } else {
+                const duracaoCell = row.querySelector('[data-value="Duração"]');
+                duracaoCell.textContent = calculateDuration(inicioPrevisto, terminoPrevisto);
+            }
         }
     </script>
 </body>
