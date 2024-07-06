@@ -155,37 +155,12 @@
                 const values = lines[i].split(';').map(value => value.trim());
                 const entry = {};
                 for (let j = 0; j < headers.length; j++) {
-                    if (headers[j].toLowerCase().includes('início') || headers[j].toLowerCase().includes('término')) {
-                        entry[headers[j]] = convertToISODate(values[j]);
-                    } else if (headers[j].toLowerCase().includes('peso')) {
-                        // Deixe vazio para ser calculado dinamicamente
-                    } else {
-                        entry[headers[j]] = values[j];
-                    }
+                    entry[headers[j]] = values[j];
                 }
                 data.push(entry);
             }
 
             return data;
-        }
-
-        function convertToISODate(dateString) {
-            const parts = dateString.split('-');
-            if (parts.length === 3) {
-                const year = parts[0];
-                const month = parts[1];
-                const day = parts[2];
-                return `${year}-${month}-${day}`;
-            }
-            return dateString;
-        }
-
-        function calculateDuration(startDate, endDate) {
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-            const diffTime = Math.abs(end - start);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            return diffDays;
         }
 
         function renderTable(data) {
@@ -203,37 +178,20 @@
                 idCell.textContent = item['ID'];
                 row.appendChild(idCell);
 
-                // Calcular duração em dias entre Previsto Início e Previsto Término
-                const inicioPrevisto = item['Previsto Início'];
-                const terminoPrevisto = item['Previsto Término'];
-                const duracaoPrevista = calculateDuration(inicioPrevisto, terminoPrevisto);
-
                 const pesoCell = document.createElement('td');
-                pesoCell.textContent = duracaoPrevista.toString(); // Exibe a duração como número inteiro
+                pesoCell.textContent = item['Peso (%)'];
                 row.appendChild(pesoCell);
 
                 const duracaoCell = document.createElement('td');
-                duracaoCell.textContent = item['Duração'];
+                duracaoCell.textContent = item['Duração (dias)'];
                 row.appendChild(duracaoCell);
 
                 const inicioPrevistoCell = document.createElement('td');
-                inicioPrevistoCell.classList.add('editavel');
-                inicioPrevistoCell.dataset.value = item['Previsto Início'];
-                const inicioPrevistoInput = document.createElement('input');
-                inicioPrevistoInput.type = 'date';
-                inicioPrevistoInput.value = item['Previsto Início'];
-                inicioPrevistoInput.addEventListener('change', () => updateCellValue(inicioPrevistoInput, row));
-                inicioPrevistoCell.appendChild(inicioPrevistoInput);
+                inicioPrevistoCell.textContent = item['Previsto Início'];
                 row.appendChild(inicioPrevistoCell);
 
                 const terminoPrevistoCell = document.createElement('td');
-                terminoPrevistoCell.classList.add('editavel');
-                terminoPrevistoCell.dataset.value = item['Previsto Término'];
-                const terminoPrevistoInput = document.createElement('input');
-                terminoPrevistoInput.type = 'date';
-                terminoPrevistoInput.value = item['Previsto Término'];
-                terminoPrevistoInput.addEventListener('change', () => updateCellValue(terminoPrevistoInput, row));
-                terminoPrevistoCell.appendChild(terminoPrevistoInput);
+                terminoPrevistoCell.textContent = item['Previsto Término'];
                 row.appendChild(terminoPrevistoCell);
 
                 const progressoPrevistoCell = document.createElement('td');
@@ -245,67 +203,15 @@
                 row.appendChild(progressoRealizadoCell);
 
                 const inicioRealizadoCell = document.createElement('td');
-                inicioRealizadoCell.classList.add('editavel');
-                inicioRealizadoCell.dataset.value = item['Realizado Início'];
-                const inicioRealizadoInput = document.createElement('input');
-                inicioRealizadoInput.type = 'date';
-                inicioRealizadoInput.value = item['Realizado Início'];
-                inicioRealizadoInput.addEventListener('change', () => updateCellValue(inicioRealizadoInput, row));
-                inicioRealizadoCell.appendChild(inicioRealizadoInput);
+                inicioRealizadoCell.textContent = item['Realizado Início'];
                 row.appendChild(inicioRealizadoCell);
 
                 const terminoRealizadoCell = document.createElement('td');
-                terminoRealizadoCell.classList.add('editavel');
-                terminoRealizadoCell.dataset.value = item['Realizado Término'];
-                const terminoRealizadoInput = document.createElement('input');
-                terminoRealizadoInput.type = 'date';
-                terminoRealizadoInput.value = item['Realizado Término'];
-                terminoRealizadoInput.addEventListener('change', () => updateCellValue(terminoRealizadoInput, row));
-                terminoRealizadoCell.appendChild(terminoRealizadoInput);
+                terminoRealizadoCell.textContent = item['Realizado Término'];
                 row.appendChild(terminoRealizadoCell);
 
                 tbody.appendChild(row);
             });
-        }
-
-        function updateCellValue(input, row) {
-            const cell = input.parentElement;
-            cell.dataset.value = input.value;
-
-            const inicioPrevisto = row.querySelector('[data-value="Previsto Início"]');
-            const terminoPrevisto = row.querySelector('[data-value="Previsto Término"]');
-            const inicioRealizado = row.querySelector('[data-value="Realizado Início"]');
-            const terminoRealizado = row.querySelector('[data-value="Realizado Término"]');
-
-            // Aqui você pode adicionar lógica para salvar os dados atualizados, por exemplo:
-            // const updatedData = {
-            //     'Tarefas': row.cells[0].textContent,
-            //     'ID': row.cells[1].textContent,
-            //     'Previsto Início': inicioPrevisto.dataset.value,
-            //     'Previsto Término': terminoPrevisto.dataset.value,
-            //     'Realizado Início': inicioRealizado.dataset.value,
-            //     'Realizado Término': terminoRealizado.dataset.value,
-            //     'Duração': row.cells[2].textContent,
-            //     'Progresso Previsto': row.cells[6].textContent,
-            //     'Progresso Realizado': row.cells[7].textContent
-            // };
-
-            // Exemplo de como enviar os dados atualizados para uma API ou serviço de backend
-            // fetch('url_para_salvar_dados', {
-            //     method: 'POST',
-            //     headers: {
-            //         'Content-Type': 'application/json'
-            //     },
-            //     body: JSON.stringify(updatedData)
-            // }).then(response => {
-            //     if (response.ok) {
-            //         console.log('Dados atualizados com sucesso!');
-            //     } else {
-            //         console.error('Erro ao atualizar os dados.');
-            //     }
-            // }).catch(error => {
-            //     console.error('Erro na requisição:', error);
-            // });
         }
     </script>
 </body>
