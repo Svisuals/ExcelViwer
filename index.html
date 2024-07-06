@@ -100,8 +100,12 @@
             display: none;
         }
 
-        .parent {
-            cursor: pointer;
+        .drop-target {
+            background-color: #ccc;
+        }
+
+        .dragging {
+            opacity: 0.5;
         }
     </style>
 </head>
@@ -149,6 +153,8 @@
                 const csv = event.target.result;
                 const data = parseCSV(csv);
                 renderTable(data);
+                enableDragAndDrop();
+                addToggleListeners();
             };
 
             reader.readAsText(file);
@@ -203,76 +209,68 @@
             tbody.innerHTML = '';
 
             data.forEach(item => {
-                const row = document.createElement('tr');
-                row.draggable = true;
-
-                // Criar células para cada coluna
-                const tarefaCell = document.createElement('td');
-                tarefaCell.textContent = item['Tarefas'];
-                tarefaCell.dataset.id = item['ID'];
-                tarefaCell.classList.add('parent');
-                row.appendChild(tarefaCell);
-
-                const idCell = document.createElement('td');
-                idCell.textContent = item['ID'];
-                row.appendChild(idCell);
-
-                const pesoCell = document.createElement('td');
-                pesoCell.textContent = item['Peso'];
-                row.appendChild(pesoCell);
-
-                // Criar célula para duração (editável)
-                const duracaoCell = document.createElement('td');
-                duracaoCell.classList.add('editavel');
-                duracaoCell.dataset.label = 'Duração';
-                duracaoCell.textContent = calculateDuration(item['Previsto Início'], item['Previsto Término']);
-                row.appendChild(duracaoCell);
-
-                // Criar células para datas previstas (início e término)
-                const inicioPrevistoCell = createEditableDateCell(item['Previsto Início'], 'Previsto Início');
-                row.appendChild(inicioPrevistoCell);
-
-                const terminoPrevistoCell = createEditableDateCell(item['Previsto Término'], 'Previsto Término');
-                row.appendChild(terminoPrevistoCell);
-
-                // Outras células (progresso previsto e realizado)
-                const progressoPrevistoCell = document.createElement('td');
-                progressoPrevistoCell.textContent = item['Progresso Previsto'];
-                row.appendChild(progressoPrevistoCell);
-
-                const progressoRealizadoCell = document.createElement('td');
-                progressoRealizadoCell.textContent = item['Progresso Realizado'];
-                row.appendChild(progressoRealizadoCell);
-
-                // Criar células para datas realizadas (início e término)
-                const inicioRealizadoCell = createEditableDateCell(item['Realizado Início'], 'Realizado Início');
-                row.appendChild(inicioRealizadoCell);
-
-                const terminoRealizadoCell = createEditableDateCell(item['Realizado Término'], 'Realizado Término');
-                row.appendChild(terminoRealizadoCell);
-
+                const row = createRow(item);
                 tbody.appendChild(row);
-            });
-
-            // Adicionar eventos de arrastar e soltar
-            const rows = document.querySelectorAll('tbody tr');
-            rows.forEach(row => {
-                row.addEventListener('dragstart', dragStart);
-                row.addEventListener('dragover', dragOver);
-                row.addEventListener('drop', drop);
-            });
-
-            // Adicionar evento para ocultar filhas ao clicar em pais
-            const parentRows = document.querySelectorAll('.parent');
-            parentRows.forEach(parent => {
-                parent.addEventListener('click', () => toggleChildren(parent));
             });
         }
 
-        function createEditableDateCell(value, label) {
+        function createRow(item) {
+            const row = document.createElement('tr');
+
+            // Criação das células
+            const tarefaCell = createCell(item['Tarefas']);
+            row.appendChild(tarefaCell);
+
+            const idCell = createCell(item['ID']);
+            row.appendChild(idCell);
+
+            const pesoCell = createCell(item['Peso']);
+            row.appendChild(pesoCell);
+
+            const duracaoCell = createEditableCell(calculateDuration(item['Previsto Início'], item['Previsto Término']));
+            duracaoCell.dataset.label = 'Duração';
+            row.appendChild(duracaoCell);
+
+            const inicioPrevistoCell = createEditableDateCell(item['Previsto Início'], 'Previsto Início');
+            row.appendChild(inicioPrevistoCell);
+
+            const terminoPrevistoCell = createEditableDateCell(item['Previsto Término'], 'Previsto Término');
+            row.appendChild(terminoPrevistoCell);
+
+            const progressoPrevistoCell = createCell(item['Progresso Previsto']);
+            row.appendChild(progressoPrevistoCell);
+
+            const progressoRealizadoCell = createCell(item['Progresso Realizado']);
+            row.appendChild(progressoRealizadoCell);
+
+            const inicioRealizadoCell = createEditableDateCell(item['Realizado Início'], 'Realizado Início');
+            row.appendChild(inicioRealizadoCell);
+
+            const terminoRealizadoCell = createEditableDateCell(item['Realizado Término'], 'Realizado Término');
+            row.appendChild(terminoRealizadoCell);
+
+            return row;
+        }
+
+        function createCell(value) {
+            const cell = document.createElement('td');
+            cell.textContent = value;
+            return cell;
+        }
+
+        function createEditableCell(value) {
             const cell = document.createElement('td');
             cell.classList.add('editavel');
-            cell.dataset.label = label;
+            cell.textContent = value;
+            cell.setAttribute('draggable', 'true');
+            cell.addEventListener('dragstart', handleDragStart);
+            cell.addEventListener('dragover', handleDragOver);
+            cell.addEventListener('drop', handleDrop);
+            return cell;
+        }
+
+        function createEditableDateCell(value, label) {
+            const cell = createEditableCell(value);
             const input = document.createElement('input');
             input.type = 'date';
             input.value = value;
@@ -281,56 +279,60 @@
             return cell;
         }
 
+        function handleDragStart(e) {
+            const row = e.target.parentElement;
+            row.classList.add('dragging');
+            e.dataTransfer.setData('text/html', row.outerHTML);
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const targetRow = e.target.closest('tr');
+            const draggedRow = document.querySelector('.dragging');
+            
+            if (targetRow !== draggedRow) {
+                if (targetRow.contains(draggedRow)) {
+                    // Row is a child of the target row, so we do not change its parent
+                    return;
+                }
+
+                // Remove the dragged row from its current position
+                draggedRow.parentNode.removeChild(draggedRow);
+
+                // Determine if the row should be a child or sibling
+                if (e.target.classList.contains('editavel')) {
+                    targetRow.querySelector('td:first-child').appendChild(draggedRow);
+                    draggedRow.classList.remove('dragging');
+                } else {
+                    targetRow.parentNode.insertBefore(draggedRow, targetRow.nextSibling);
+                    draggedRow.classList.remove('dragging');
+                }
+            }
+        }
+
         function updateCellValue(input) {
             const cell = input.parentElement;
             cell.textContent = input.value;
         }
 
-        function dragStart(event) {
-            event.dataTransfer.setData('text/plain', event.target.dataset.id);
+        function addToggleListeners() {
+            const tarefas = document.querySelectorAll('.tarefa');
+            tarefas.forEach(tarefa => {
+                tarefa.addEventListener('click', () => toggleSubtasks(tarefa));
+            });
         }
 
-        function dragOver(event) {
-            event.preventDefault();
-        }
-
-        function drop(event) {
-            event.preventDefault();
-            const draggedId = event.dataTransfer.getData('text/plain');
-            const target = event.target.closest('tr');
-
-            if (!target || target === event.currentTarget) {
-                return;
-            }
-
-            // Verificar se o alvo é uma linha pai
-            const isParent = target.classList.contains('parent');
-            const draggedRow = document.querySelector(`[data-id="${draggedId}"]`);
-
-            if (isParent) {
-                // Tornar a linha filha da linha pai
-                target.appendChild(draggedRow);
-                draggedRow.classList.add('child');
-            } else {
-                // Se o alvo não é uma linha pai, encontrar o pai mais próximo
-                const parent = target.closest('.parent');
-                if (parent) {
-                    parent.appendChild(draggedRow);
-                    draggedRow.classList.add('child');
-                }
-            }
-        }
-
-        function toggleChildren(parentRow) {
-            const children = parentRow.nextElementSibling;
-            if (children && children.classList.contains('child')) {
-                const isHidden = children.classList.toggle('hidden');
-                if (isHidden) {
-                    parentRow.style.fontWeight = 'normal';
-                } else {
-                    parentRow.style.fontWeight = 'bold';
-                }
-            }
+        function toggleSubtasks(tarefa) {
+            const subtarefas = tarefa.nextElementSibling.querySelectorAll('.tarefa');
+            subtarefas.forEach(subtarefa => {
+                subtarefa.classList.toggle('hidden');
+            });
         }
     </script>
 </body>
