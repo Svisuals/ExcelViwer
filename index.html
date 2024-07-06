@@ -108,17 +108,20 @@
             for (let i = 1; i < lines.length; i++) {
                 const values = lines[i].split(';').map(value => value.trim());
                 const entry = {};
-                for (let j = 0; j < headers.length; j++) {
-                    if (headers[j].toLowerCase().includes('início') || headers[j].toLowerCase().includes('término')) {
-                        entry[headers[j]] = convertToISODate(values[j]);
-                    } else if (headers[j].toLowerCase().includes('duração')) {
-                        entry[headers[j]] = calculateDuration(values[headers.indexOf('Previsto Início')], values[headers.indexOf('Previsto Término')]);
-                    } else if (headers[j].toLowerCase().includes('peso')) {
-                        entry[headers[j]] = `${values[j]}%`;
+
+                headers.forEach((header, index) => {
+                    const value = values[index];
+                    if (header.toLowerCase().includes('início') || header.toLowerCase().includes('término')) {
+                        entry[header] = convertToISODate(value);
+                    } else if (header.toLowerCase().includes('duração')) {
+                        entry[header] = calculateDuration(values[headers.indexOf('Previsto Início')], values[headers.indexOf('Previsto Término')]);
+                    } else if (header.toLowerCase().includes('peso')) {
+                        entry[header] = `${value}%`;
                     } else {
-                        entry[headers[j]] = values[j];
+                        entry[header] = value;
                     }
-                }
+                });
+
                 data.push(entry);
             }
 
@@ -151,13 +154,12 @@
             data.forEach(item => {
                 const row = document.createElement('tr');
 
-                // Itera sobre os headers para garantir a ordem correta
                 Object.keys(item).forEach(key => {
                     const cell = document.createElement('td');
                     const input = document.createElement('input');
-                    input.type = 'text'; // Pode ser alterado para diferentes tipos conforme necessário
+                    input.type = 'text';
                     input.value = item[key];
-                    input.addEventListener('input', () => updateCellValue(item, key, input.value)); // Passa o item completo e a chave
+                    input.addEventListener('input', () => updateCellValue(item, key, input.value));
                     cell.appendChild(input);
                     row.appendChild(cell);
                 });
@@ -167,7 +169,7 @@
         }
 
         function updateCellValue(item, columnName, newValue) {
-            item[columnName] = newValue; // Atualiza diretamente no objeto 'item'
+            item[columnName] = newValue;
         }
 
         document.getElementById('btn-download-csv').addEventListener('click', downloadCSV);
