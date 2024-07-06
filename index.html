@@ -151,12 +151,13 @@
             data.forEach(item => {
                 const row = document.createElement('tr');
 
+                // Itera sobre os headers para garantir a ordem correta
                 Object.keys(item).forEach(key => {
                     const cell = document.createElement('td');
                     const input = document.createElement('input');
                     input.type = 'text'; // Pode ser alterado para diferentes tipos conforme necessário
                     input.value = item[key];
-                    input.addEventListener('input', () => updateCellValue(key, input.value));
+                    input.addEventListener('input', () => updateCellValue(item, key, input.value)); // Passa o item completo e a chave
                     cell.appendChild(input);
                     row.appendChild(cell);
                 });
@@ -165,9 +166,8 @@
             });
         }
 
-        function updateCellValue(columnName, newValue) {
-            const rowIndex = event.target.closest('tr').rowIndex - 1;
-            tableData[rowIndex][columnName] = newValue;
+        function updateCellValue(item, columnName, newValue) {
+            item[columnName] = newValue; // Atualiza diretamente no objeto 'item'
         }
 
         document.getElementById('btn-download-csv').addEventListener('click', downloadCSV);
