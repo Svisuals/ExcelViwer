@@ -157,6 +157,8 @@
                 for (let j = 0; j < headers.length; j++) {
                     if (headers[j].toLowerCase().includes('início') || headers[j].toLowerCase().includes('término')) {
                         entry[headers[j]] = convertToISODate(values[j]);
+                    } else if (headers[j].toLowerCase().includes('peso')) {
+                        // Deixe vazio para ser calculado dinamicamente
                     } else {
                         entry[headers[j]] = values[j];
                     }
@@ -201,6 +203,19 @@
                 idCell.textContent = item['ID'];
                 row.appendChild(idCell);
 
+                // Calcular duração em dias entre Previsto Início e Previsto Término
+                const inicioPrevisto = item['Previsto Início'];
+                const terminoPrevisto = item['Previsto Término'];
+                const duracaoPrevista = calculateDuration(inicioPrevisto, terminoPrevisto);
+
+                const pesoCell = document.createElement('td');
+                pesoCell.textContent = duracaoPrevista.toString(); // Exibe a duração como número inteiro
+                row.appendChild(pesoCell);
+
+                const duracaoCell = document.createElement('td');
+                duracaoCell.textContent = item['Duração'];
+                row.appendChild(duracaoCell);
+
                 const inicioPrevistoCell = document.createElement('td');
                 inicioPrevistoCell.classList.add('editavel');
                 inicioPrevistoCell.dataset.value = item['Previsto Início'];
@@ -220,14 +235,6 @@
                 terminoPrevistoInput.addEventListener('change', () => updateCellValue(terminoPrevistoInput, row));
                 terminoPrevistoCell.appendChild(terminoPrevistoInput);
                 row.appendChild(terminoPrevistoCell);
-
-                const pesoCell = document.createElement('td');
-                pesoCell.textContent = item['Peso'];
-                row.appendChild(pesoCell);
-
-                const duracaoCell = document.createElement('td');
-                duracaoCell.textContent = item['Duração'];
-                row.appendChild(duracaoCell);
 
                 const progressoPrevistoCell = document.createElement('td');
                 progressoPrevistoCell.textContent = item['Progresso Previsto'];
@@ -271,9 +278,9 @@
             // Calcular a duração em dias entre as datas de início e término previstas
             const duracaoPrevista = calculateDuration(inicioPrevisto, terminoPrevisto);
 
-            // Atualizar o valor da célula "Duração" com a nova duração calculada
-            const duracaoCell = row.querySelector('td:nth-child(4)');
-            duracaoCell.textContent = duracaoPrevista.toString();
+            // Atualizar o valor da célula "Peso" com a nova duração calculada
+            const pesoCell = row.querySelector('td:nth-child(3)');
+            pesoCell.textContent = duracaoPrevista.toString();
         }
     </script>
 </body>
