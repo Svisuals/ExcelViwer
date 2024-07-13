@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Página con iFrame de Google Sheets y Botón de Descarga</title>
+<title>Página con iFrame de Google Sheets y Captura de Pantalla</title>
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -43,6 +43,23 @@
 
     .download-btn:hover {
         background-color: #45a049;
+    }
+
+    .screenshot-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 50px;
+        padding: 10px 20px;
+        background-color: #f44336;
+        color: white;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        z-index: 1000; /* Asegura que esté encima del iframe */
+    }
+
+    .screenshot-btn:hover {
+        background-color: #e53935;
     }
 
     .login-form {
@@ -100,7 +117,8 @@
     <iframe id="myIframe" src=""></iframe>
 </div>
 
-<a class="download-btn hidden" id="downloadBtn" href="#" onclick="downloadPDF()">Descargar PDF</a>
+<a class="download-btn hidden" id="downloadBtn" href="#">Descargar PDF</a>
+<button class="screenshot-btn hidden" onclick="captureScreen()">Capturar Pantalla</button>
 
 <div class="login-form" id="loginForm">
     <img src="SV AECO Logo.png" alt="Logo"> <!-- Asegúrate de que la imagen esté en la misma carpeta que este archivo -->
@@ -110,6 +128,7 @@
     <button onclick="login()">Ingresar</button>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
 <script>
     function login() {
         const username = document.getElementById('username').value;
@@ -120,9 +139,11 @@
             document.getElementById('iframeContainer').classList.remove('hidden');
             // Redirigir el iframe a Google Sheets
             const iframe = document.getElementById('myIframe');
-            iframe.src = "https://docs.google.com/spreadsheets/d/1Wsr5ZBAqlC9-ZLlBYJ4hjL-p7HgoCgff/edit?usp=sharing&rm=minimal#gid=832209329";
+            iframe.src = "URL_DEL_SCRIPT";
             // Mostrar el botón de descarga
             document.getElementById('downloadBtn').classList.remove('hidden');
+            // Mostrar el botón de captura de pantalla
+            document.querySelector('.screenshot-btn').classList.remove('hidden');
             // Ocultar el formulario de login
             document.getElementById('loginForm').classList.add('hidden');
         } else {
@@ -130,18 +151,19 @@
         }
     }
 
-    function downloadPDF() {
-        var sheetUrl = "https://docs.google.com/spreadsheets/d/1Wsr5ZBAqlC9-ZLlBYJ4hjL-p7HgoCgff/edit?usp=sharing&rm=minimal#gid=832209329";
-        var downloadUrl = sheetUrl.replace("/edit", "/export") + "&format=pdf"; // Cambiar formato a PDF
+    function captureScreen() {
+        // Ocultar el botón de captura para evitar capturar el botón mismo
+        document.querySelector('.screenshot-btn').style.display = 'none';
 
-        var link = document.createElement("a");
-        link.style.display = "none";
-        link.href = downloadUrl;
-        link.download = "datos.pdf"; // Cambiar nombre del archivo a PDF
+        // Capturar la pantalla
+        html2canvas(document.body).then(canvas => {
+            // Mostrar el botón de captura nuevamente
+            document.querySelector('.screenshot-btn').style.display = 'block';
 
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+            // Abrir la imagen capturada en una nueva ventana/tab
+            var image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+            window.open(image, "_blank");
+        });
     }
 </script>
 
