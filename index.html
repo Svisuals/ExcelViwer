@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Página con Redirección a Google Sheets y Descarga CSV</title>
+<title>Página con iFrame de Google Sheets ocupando toda la pantalla</title>
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -12,22 +12,28 @@
         background-color: #000; /* Fondo negro */
     }
 
-    .container {
-        max-width: 800px;
-        margin: 20px auto;
-        padding: 20px;
-        background-color: #fff;
-        border: 1px solid #ccc;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    .iframe-container {
+        position: fixed; /* Posición fija para que ocupe toda la pantalla */
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
     }
 
-    h1 {
-        text-align: center;
+    iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
     }
 
     .login-form {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1000; /* Coloca el formulario encima del iframe */
         max-width: 300px;
-        margin: 100px auto;
         padding: 20px;
         background-color: #fff;
         border: 1px solid #ccc;
@@ -71,6 +77,11 @@
 </style>
 </head>
 <body>
+
+<div class="iframe-container hidden" id="iframeContainer">
+    <iframe id="myIframe" src=""></iframe>
+</div>
+
 <div class="login-form" id="loginForm">
     <img src="SV AECO Logo.png" alt="Logo"> <!-- Asegúrate de que la imagen esté en la misma carpeta que este archivo -->
     <h2>Cronograma de Obra</h2>
@@ -79,19 +90,19 @@
     <button onclick="login()">Ingresar</button>
 </div>
 
-<div class="container hidden" id="content">
-    <h1>Página Redirigida a Google Sheets</h1>
-    <p>Redirigiendo a Google Sheets...</p>
-</div>
-
 <script>
     function login() {
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
 
         if (username === 'ADM' && password === '1234') {
-            // Redirigir a Google Sheets
-            window.location.href = "https://docs.google.com/spreadsheets/d/1Wsr5ZBAqlC9-ZLlBYJ4hjL-p7HgoCgff/edit?usp=sharing&rm=minimal#gid=832209329";
+            // Mostrar el contenedor del iframe
+            document.getElementById('iframeContainer').classList.remove('hidden');
+            // Redirigir el iframe a Google Sheets
+            const iframe = document.getElementById('myIframe');
+            iframe.src = "https://docs.google.com/spreadsheets/d/1Wsr5ZBAqlC9-ZLlBYJ4hjL-p7HgoCgff/edit?usp=sharing&rm=minimal#gid=832209329";
+            // Ocultar el formulario de login
+            document.getElementById('loginForm').classList.add('hidden');
         } else {
             alert('Usuario o contraseña incorrectos.');
         }
