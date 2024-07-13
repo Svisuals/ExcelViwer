@@ -33,9 +33,6 @@
     }
 
     iframe {
-        position: absolute;
-        top: 0;
-        left: 0;
         width: 100%;
         height: 100%; /* Ocupa el 100% del contenedor iframe-container */
         border: none;
@@ -115,7 +112,7 @@
 <div class="container hidden" id="content">
     <h1>Página con iFrame de Google Sheets editable y descarga CSV</h1>
     <div class="iframe-container">
-        <iframe id="myIframe" src="https://docs.google.com/spreadsheets/d/1Wsr5ZBAqlC9-ZLlBYJ4hjL-p7HgoCgff/edit?usp=sharing&rm=minimal#gid=832209329" frameborder="0" scrolling="auto"></iframe>
+        <iframe id="myIframe" src="" frameborder="0" scrolling="auto"></iframe>
     </div>
     <a class="download-btn" href="#" onclick="downloadCSV()">Descargar CSV</a>
 </div>
@@ -128,6 +125,10 @@
         if (username === 'ADM' && password === '1234') {
             document.getElementById('loginForm').classList.add('hidden');
             document.getElementById('content').classList.remove('hidden');
+            
+            // Cambia la URL del iframe al cargar con credenciales
+            const iframe = document.getElementById('myIframe');
+            iframe.src = "https://docs.google.com/spreadsheets/d/1Wsr5ZBAqlC9-ZLlBYJ4hjL-p7HgoCgff/edit?usp=sharing&rm=minimal#gid=832209329";
         } else {
             alert('Usuario o contraseña incorrectos.');
         }
