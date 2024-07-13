@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Página con iFrame de Google Sheets editable y descarga CSV</title>
+<title>Página con iFrame de Google Sheets editable</title>
 <style>
     body {
         font-family: Arial, sans-serif;
         margin: 0;
         padding: 0;
-        background-color: #000; /* Fondo negro */
+        background-color: #f0f0f0;
     }
 
     .container {
@@ -27,126 +27,30 @@
 
     .iframe-container {
         position: relative;
-        width: 100%;
-        height: 100vh; /* Ocupa el 100% de la altura visible del viewport */
         overflow: hidden;
+        padding-top: 56.25%; /* proporção de 16:9 (para vídeo) */
     }
 
     iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
         width: 100%;
-        height: 100%; /* Ocupa el 100% del contenedor iframe-container */
+        height: 100%;
         border: none;
-    }
-
-    .download-btn {
-        display: block;
-        width: 150px;
-        margin: 20px auto;
-        padding: 10px;
-        text-align: center;
-        background-color: #4CAF50;
-        color: white;
-        text-decoration: none;
-        border: none;
-        cursor: pointer;
-    }
-
-    .download-btn:hover {
-        background-color: #45a049;
-    }
-
-    .login-form {
-        max-width: 300px;
-        margin: 100px auto;
-        padding: 20px;
-        background-color: #fff;
-        border: 1px solid #ccc;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        text-align: center;
-    }
-
-    .login-form img {
-        display: block;
-        margin: 0 auto 10px auto;
-        max-width: 100px; /* Ajusta el tamaño del logo según sea necesario */
-    }
-
-    .login-form h2 {
-        text-align: center;
-    }
-
-    .login-form input[type="text"], .login-form input[type="password"] {
-        width: 100%;
-        padding: 10px;
-        margin: 10px 0;
-        box-sizing: border-box;
-    }
-
-    .login-form button {
-        width: 100%;
-        padding: 10px;
-        background-color: #4CAF50;
-        color: white;
-        border: none;
-        cursor: pointer;
-    }
-
-    .login-form button:hover {
-        background-color: #45a049;
-    }
-
-    .hidden {
-        display: none;
     }
 </style>
 </head>
 <body>
-<div class="login-form" id="loginForm">
-    <img src="SV AECO Logo.png" alt="Logo"> <!-- Asegúrate de que la imagen esté en la misma carpeta que este archivo -->
-    <h2>Cronograma de Obra</h2>
-    <input type="text" id="username" placeholder="Usuario">
-    <input type="password" id="password" placeholder="Contraseña">
-    <button onclick="login()">Ingresar</button>
-</div>
-
-<div class="container hidden" id="content">
-    <h1>Página con iFrame de Google Sheets editable y descarga CSV</h1>
+<div class="container">
+    <h1>Página con iFrame de Google Sheets editable</h1>
     <div class="iframe-container">
-        <iframe id="myIframe" src="" frameborder="0" scrolling="auto"></iframe>
+        <iframe id="myIframe" src="https://docs.google.com/spreadsheets/d/1Wsr5ZBAqlC9-ZLlBYJ4hjL-p7HgoCgff/edit?usp=sharing&rm=minimal#gid=832209329" frameborder="0" scrolling="auto"></iframe>
     </div>
-    <a class="download-btn" href="#" onclick="downloadCSV()">Descargar CSV</a>
 </div>
 
 <script>
-    function login() {
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-
-        if (username === 'ADM' && password === '1234') {
-            document.getElementById('loginForm').classList.add('hidden');
-            document.getElementById('content').classList.remove('hidden');
-            
-            // Cambia la URL del iframe al cargar con credenciales
-            const iframe = document.getElementById('myIframe');
-            iframe.src = "https://docs.google.com/spreadsheets/d/1Wsr5ZBAqlC9-ZLlBYJ4hjL-p7HgoCgff/edit?usp=sharing&rm=minimal#gid=832209329";
-        } else {
-            alert('Usuario o contraseña incorrectos.');
-        }
-    }
-
-    function downloadCSV() {
-        var sheetUrl = "https://docs.google.com/spreadsheets/d/1Wsr5ZBAqlC9-ZLlBYJ4hjL-p7HgoCgff/edit?usp=sharing&rm=minimal#gid=832209329";
-        var downloadUrl = sheetUrl.replace("/edit", "/export") + "&format=csv";
-
-        var link = document.createElement("a");
-        link.style.display = "none";
-        link.href = downloadUrl;
-        link.download = "datos.csv";
-
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
+    // Aquí podría ir cualquier script adicional que necesites para interactuar con el iframe
 </script>
 
 </body>
