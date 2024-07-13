@@ -27,8 +27,10 @@
 
     .iframe-container {
         position: relative;
+        width: 100%; /* Asegura que el contenedor del iframe ocupe el ancho completo */
+        height: 0;
+        padding-top: 56.25%; /* Proporción de 16:9 (para vídeo) */
         overflow: hidden;
-        padding-top: 56.25%; /* proporción de 16:9 (para vídeo) */
     }
 
     iframe {
